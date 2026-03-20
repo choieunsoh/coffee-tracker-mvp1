@@ -157,6 +157,59 @@ coffee-tracker-mvp/
 └── package.json               # Dependencies and scripts
 ```
 
+## Database
+
+### JSON File Storage
+
+This application uses a **simple JSON file** for data storage:
+
+- **Location:** `./data/coffee-data.json`
+- **Format:** Array of coffee entry objects
+- **Managed by:** Express server (`server.js`)
+
+### Data Structure
+
+```json
+[
+  {
+    "id": "550e8400-e29b-41d4-a716-446655440000",
+    "brand": "Starbucks",
+    "beanName": "House Blend",
+    "createdAt": 1679089200000
+  }
+]
+```
+
+### How It Works
+
+1. **Server reads** JSON file on API requests
+2. **Server writes** back to file on changes
+3. **File persisted** in `./data/` directory
+4. **Auto-created** if file doesn't exist
+
+### Advantages
+
+- ✅ **Simple** - No database server needed
+- ✅ **Portable** - Easy to backup and migrate
+- ✅ **Human-readable** - Can edit JSON directly
+- ✅ **Sufficient** for personal/single-user apps
+
+### Limitations
+
+- ⚠️ **Not concurrent** - Race conditions with multiple users
+- ⚠️ **No ACID** - No transaction guarantees
+- ⚠️ **Not scalable** - Not suitable for high traffic
+- ⚠️ **Single device** - No multi-device sync
+
+### For Production Use
+
+Consider upgrading to:
+- **SQLite** - Single-file SQL database (better performance)
+- **PostgreSQL** - Full production database
+- **MySQL** - Alternative SQL database
+
+See [`.docs/SECURITY_AUDIT.md`](.docs/SECURITY_AUDIT.md) for database recommendations.
+
 ## API Endpoints
 
 ### GET /api/entries

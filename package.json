@@ -4,7 +4,7 @@
   "license": "MIT",
   "private": true,
   "type": "module",
-  "description": "Coffee Tracker MVP - Standalone TypeScript application with real-time sync",
+  "description": "Coffee Tracker MVP - Simple coffee tracking with JSON file storage and Express backend",
   "scripts": {
     "dev": "vite",
     "build": "tsc && vite build",
