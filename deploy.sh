@@ -73,6 +73,14 @@ git commit --amend --no-edit
 
 # Create and push git tag
 print_info "Creating git tag v$NEW_VERSION..."
+
+# Check if tag already exists and remove it
+if git rev-parse "$NEW_VERSION" >/dev/null 2>&1; then
+    print_warning "Tag v$NEW_VERSION already exists. Removing old tag..."
+    git tag -d "v$NEW_VERSION" || true
+    git push origin ":refs/tags/v$NEW_VERSION" || true
+fi
+
 git tag -a "v$NEW_VERSION" -m "Release version $NEW_VERSION"
 
 # Push commit and tags
