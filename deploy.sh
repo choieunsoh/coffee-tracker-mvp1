@@ -61,23 +61,9 @@ print_info "Bumping version..."
 NEW_VERSION=$(npm version $VERSION_TYPE --no-git-tag-version | sed 's/^v//')
 print_info "New version: $NEW_VERSION"
 
-# Update .env file with new version
-print_info "Updating APP_VERSION in .env file..."
-if [ -f .env ]; then
-    # Update or add APP_VERSION to .env
-    if grep -q "^APP_VERSION=" .env; then
-        sed -i.bak "s/^APP_VERSION=.*/APP_VERSION=$NEW_VERSION/" .env && rm .env.bak
-    else
-        echo "APP_VERSION=$NEW_VERSION" >> .env
-    fi
-else
-    print_warning ".env file not found - creating with APP_VERSION=$NEW_VERSION"
-    echo "APP_VERSION=$NEW_VERSION" > .env
-fi
-
-# Commit version bump and .env update
+# Commit version bump
 print_info "Committing version bump..."
-git add package.json .env
+git add package.json
 git commit -m "chore: bump version to $NEW_VERSION"
 
 # Create git tag
@@ -96,6 +82,7 @@ fi
 
 # Deploy to Docker
 print_info "Building and deploying Docker container..."
+export APP_VERSION=$NEW_VERSION
 docker-compose down -v
 docker-compose build --no-cache
 docker-compose up -d
