@@ -1,13 +1,20 @@
-import { Box, CircularProgress, Container, CssBaseline, ThemeProvider, Typography } from '@mui/material';
-import { APP_VERSION, BUILD_DATE } from './config/version';
-import { CoffeeTracker } from './features/coffee-tracker/components/CoffeeTracker';
-import { LoginPage } from './features/coffee-tracker/components/LoginPage';
-import { UserProfile } from './features/coffee-tracker/components/UserProfile';
-import { AuthProvider, useAuth } from './features/coffee-tracker/contexts/AuthContext';
-import { theme } from './shared/styles/theme';
+import {
+  Box,
+  CircularProgress,
+  Container,
+  CssBaseline,
+  ThemeProvider,
+  Typography,
+} from '@mui/material'
+import { APP_VERSION, BUILD_DATE } from './config/version'
+import { CoffeeTracker } from './features/coffee-tracker/components/CoffeeTracker'
+import { LoginPage } from './features/coffee-tracker/components/LoginPage'
+import { UserProfile } from './features/coffee-tracker/components/UserProfile'
+import { AuthProvider, useAuth } from './features/coffee-tracker/contexts/AuthContext'
+import { theme } from './shared/styles/theme'
 
 function AppContent() {
-  const { user, loading } = useAuth();
+  const { user, loading } = useAuth()
 
   // Show loading spinner while checking auth
   if (loading) {
@@ -23,12 +30,12 @@ function AppContent() {
       >
         <CircularProgress sx={{ color: '#1877F2' }} />
       </Box>
-    );
+    )
   }
 
   // Show login page if not authenticated
   if (!user) {
-    return <LoginPage />;
+    return <LoginPage />
   }
 
   // Show main app if authenticated
@@ -68,7 +75,7 @@ function AppContent() {
         </Typography>
       </Box>
     </Box>
-  );
+  )
 }
 
 export function App() {
@@ -79,34 +86,34 @@ export function App() {
         <AppContent />
       </AuthProvider>
     </ThemeProvider>
-  );
+  )
 }
 
 function getCurrentDate(): string {
-  const now = new Date();
+  const now = new Date()
   return now.toLocaleDateString('en-US', {
     weekday: 'long',
     year: 'numeric',
     month: 'long',
     day: 'numeric',
-  });
+  })
 }
 
 function formatBuildDate(isoDate: string): string {
-  const date = new Date(isoDate);
+  const date = new Date(isoDate)
 
   const dateFormatter = new Intl.DateTimeFormat('en-GB', {
     day: '2-digit',
     month: '2-digit',
     year: 'numeric',
-  });
+  })
 
   const timeFormatter = new Intl.DateTimeFormat('en-GB', {
     hour: '2-digit',
     minute: '2-digit',
     second: '2-digit',
     hour12: false,
-  });
+  })
 
-  return `${dateFormatter.format(date)} ${timeFormatter.format(date)}`;
+  return `${dateFormatter.format(date)} ${timeFormatter.format(date)}`
 }

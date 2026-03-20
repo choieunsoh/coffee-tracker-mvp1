@@ -1,23 +1,23 @@
-const API_BASE = window.location.origin;
+const API_BASE = window.location.origin
 
 export interface CoffeeEntry {
-  id: string;
-  userId: string;
-  brand: string;
-  beanName: string;
-  createdAt: number;
+  id: string
+  userId: string
+  brand: string
+  beanName: string
+  createdAt: number
 }
 
 export class CoffeeApiClient {
   async getTodayEntries(startDate?: number): Promise<CoffeeEntry[]> {
     const url = startDate
       ? `${API_BASE}/api/entries?startDate=${startDate}`
-      : `${API_BASE}/api/entries`;
+      : `${API_BASE}/api/entries`
     const response = await fetch(url, {
-      credentials: 'include'
-    });
-    if (!response.ok) throw new Error('Failed to fetch entries');
-    return response.json();
+      credentials: 'include',
+    })
+    if (!response.ok) throw new Error('Failed to fetch entries')
+    return response.json()
   }
 
   async addEntry(brand: string, beanName: string): Promise<CoffeeEntry> {
@@ -25,19 +25,19 @@ export class CoffeeApiClient {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ brand, beanName }),
-      credentials: 'include'
-    });
-    if (!response.ok) throw new Error('Failed to add entry');
-    return response.json();
+      credentials: 'include',
+    })
+    if (!response.ok) throw new Error('Failed to add entry')
+    return response.json()
   }
 
   async deleteEntry(id: string): Promise<void> {
     const response = await fetch(`${API_BASE}/api/entries/${id}`, {
       method: 'DELETE',
-      credentials: 'include'
-    });
-    if (!response.ok) throw new Error('Failed to delete entry');
+      credentials: 'include',
+    })
+    if (!response.ok) throw new Error('Failed to delete entry')
   }
 }
 
-export const apiClient = new CoffeeApiClient();
+export const apiClient = new CoffeeApiClient()

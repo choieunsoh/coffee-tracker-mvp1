@@ -1,18 +1,18 @@
-import { Box, Alert, CircularProgress } from '@mui/material';
-import { CoffeeCountButton } from './CoffeeCountButton';
-import { TodayEntriesList } from './TodayEntriesList';
-import { useCoffeeEntries } from '../hooks/useCoffeeEntries';
-import { apiClient } from '@/lib/api/client';
+import { Box, Alert, CircularProgress } from '@mui/material'
+import { CoffeeCountButton } from './CoffeeCountButton'
+import { TodayEntriesList } from './TodayEntriesList'
+import { useCoffeeEntries } from '../hooks/useCoffeeEntries'
+import { apiClient } from '@/lib/api/client'
 
 export function CoffeeTracker() {
-  const { todayEntries, count, addEntry, isLoading, isAdding, error } = useCoffeeEntries();
+  const { todayEntries, count, addEntry, isLoading, isAdding, error } = useCoffeeEntries()
 
   async function handleDelete(id: string): Promise<void> {
     try {
-      await apiClient.deleteEntry(id);
+      await apiClient.deleteEntry(id)
       // Real-time sync will handle the UI update
     } catch (err) {
-      console.error('Failed to delete entry:', err);
+      console.error('Failed to delete entry:', err)
     }
   }
 
@@ -28,7 +28,7 @@ export function CoffeeTracker() {
       >
         <CircularProgress sx={{ color: '#D2691E' }} />
       </Box>
-    );
+    )
   }
 
   return (
@@ -53,5 +53,5 @@ export function CoffeeTracker() {
         <TodayEntriesList entries={todayEntries} onDelete={handleDelete} />
       </Box>
     </Box>
-  );
+  )
 }

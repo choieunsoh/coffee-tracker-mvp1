@@ -1,45 +1,45 @@
-import { useState } from 'react';
-import { Box, Typography } from '@mui/material';
+import { useState } from 'react'
+import { Box, Typography } from '@mui/material'
 
 type CoffeeCountButtonProps = {
-  count: number;
-  onAddEntry: () => void;
-  disabled?: boolean;
-};
+  count: number
+  onAddEntry: () => void
+  disabled?: boolean
+}
 
 export function CoffeeCountButton({ count, onAddEntry, disabled }: CoffeeCountButtonProps) {
-  const [isProcessing, setIsProcessing] = useState(false);
+  const [isProcessing, setIsProcessing] = useState(false)
 
   const handleClick = async (e: React.MouseEvent) => {
     // Prevent default to avoid any bubbling issues
-    e.preventDefault();
-    e.stopPropagation();
+    e.preventDefault()
+    e.stopPropagation()
 
-    console.log('[CoffeeCountButton] Clicked, disabled:', disabled, 'isProcessing:', isProcessing);
+    console.log('[CoffeeCountButton] Clicked, disabled:', disabled, 'isProcessing:', isProcessing)
 
     // Guard against multiple clicks
     if (disabled || isProcessing) {
-      console.log('[CoffeeCountButton] Blocked - disabled or already processing');
-      return;
+      console.log('[CoffeeCountButton] Blocked - disabled or already processing')
+      return
     }
 
     if (!onAddEntry) {
-      console.log('[CoffeeCountButton] No onAddEntry handler');
-      return;
+      console.log('[CoffeeCountButton] No onAddEntry handler')
+      return
     }
 
-    console.log('[CoffeeCountButton] Calling onAddEntry');
-    setIsProcessing(true);
+    console.log('[CoffeeCountButton] Calling onAddEntry')
+    setIsProcessing(true)
 
     try {
-      await onAddEntry();
+      await onAddEntry()
     } finally {
       // Small delay to prevent rapid double-clicks
       setTimeout(() => {
-        setIsProcessing(false);
-      }, 500);
+        setIsProcessing(false)
+      }, 500)
     }
-  };
+  }
 
   return (
     <Box
@@ -57,13 +57,19 @@ export function CoffeeCountButton({ count, onAddEntry, disabled }: CoffeeCountBu
         transition: 'transform 0.2s, box-shadow 0.2s',
         boxShadow: '0 10px 30px rgba(75, 46, 42, 0.4)',
         opacity: disabled || isProcessing ? 0.6 : 1,
-        '&:hover': disabled || isProcessing ? {} : {
-          transform: 'scale(1.05)',
-          boxShadow: '0 15px 40px rgba(139, 69, 19, 0.4)',
-        },
-        '&:active': disabled || isProcessing ? {} : {
-          transform: 'scale(0.95)',
-        },
+        '&:hover':
+          disabled || isProcessing
+            ? {}
+            : {
+                transform: 'scale(1.05)',
+                boxShadow: '0 15px 40px rgba(139, 69, 19, 0.4)',
+              },
+        '&:active':
+          disabled || isProcessing
+            ? {}
+            : {
+                transform: 'scale(0.95)',
+              },
         userSelect: 'none',
         WebkitTapHighlightColor: 'transparent',
       }}
@@ -90,5 +96,5 @@ export function CoffeeCountButton({ count, onAddEntry, disabled }: CoffeeCountBu
         {disabled || isProcessing ? 'Adding...' : 'cups today'}
       </Typography>
     </Box>
-  );
+  )
 }

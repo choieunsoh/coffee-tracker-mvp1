@@ -1,10 +1,10 @@
-import { Avatar, Box, Button, Typography } from '@mui/material';
-import { useAuth } from '../contexts/AuthContext';
+import { Avatar, Box, Button, Typography } from '@mui/material'
+import { useAuth } from '../contexts/AuthContext'
 
 export function UserProfile() {
-  const { user, logout } = useAuth();
+  const { user, logout } = useAuth()
 
-  if (!user) return null;
+  if (!user) return null
 
   return (
     <Box
@@ -21,7 +21,9 @@ export function UserProfile() {
       }}
     >
       <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-        <Avatar sx={{ bgcolor: '#1877F2', width: 40, height: 40 }}>{user?.name?.charAt(0).toUpperCase()}</Avatar>
+        <Avatar sx={{ bgcolor: '#1877F2', width: 40, height: 40 }}>
+          {user?.name?.charAt(0).toUpperCase()}
+        </Avatar>
         <Box>
           <Typography variant="body1" fontWeight="medium">
             {user?.name}
@@ -37,5 +39,5 @@ export function UserProfile() {
         Logout
       </Button>
     </Box>
-  );
+  )
 }

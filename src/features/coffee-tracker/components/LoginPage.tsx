@@ -1,10 +1,10 @@
-import FacebookIcon from '@mui/icons-material/Facebook';
-import { Box, Button, Card, Container, Typography } from '@mui/material';
+import FacebookIcon from '@mui/icons-material/Facebook'
+import { Box, Button, Card, Container, Typography } from '@mui/material'
 
 export function LoginPage() {
   const handleLogin = () => {
-    window.location.href = '/api/auth/facebook';
-  };
+    window.location.href = '/api/auth/facebook'
+  }
 
   return (
     <Container maxWidth="sm">
@@ -56,5 +56,5 @@ export function LoginPage() {
         </Card>
       </Box>
     </Container>
-  );
+  )
 }

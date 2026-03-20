@@ -1,36 +1,36 @@
-import { useState, useEffect, useCallback } from 'react';
-import { apiClient } from '@/lib/api/client';
+import { useState, useEffect, useCallback } from 'react'
+import { apiClient } from '@/lib/api/client'
 // import { onNewEntry, onDeleteEntry } from '@/lib/api/websocket';
-import { DEFAULT_COFFEE_TYPE } from '@/config/app.config';
-import { getTodayStart } from '@/shared/utils/date';
-import type { CoffeeEntry } from '../types/CoffeeEntry.types';
+import { DEFAULT_COFFEE_TYPE } from '@/config/app.config'
+import { getTodayStart } from '@/shared/utils/date'
+import type { CoffeeEntry } from '../types/CoffeeEntry.types'
 
 export function useCoffeeEntries() {
-  const [todayEntries, setTodayEntries] = useState<CoffeeEntry[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [isAdding, setIsAdding] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [todayEntries, setTodayEntries] = useState<CoffeeEntry[]>([])
+  const [isLoading, setIsLoading] = useState(true)
+  const [isAdding, setIsAdding] = useState(false)
+  const [error, setError] = useState<string | null>(null)
   // const pendingEntryIdRef = useRef<string | null>(null);
 
   const loadEntries = useCallback(async () => {
     try {
-      console.log('Loading entries from server...');
-      const startDate = getTodayStart();
-      const entries = await apiClient.getTodayEntries(startDate);
-      console.log('Loaded entries:', entries);
-      setTodayEntries(entries);
-      setError(null);
+      console.log('Loading entries from server...')
+      const startDate = getTodayStart()
+      const entries = await apiClient.getTodayEntries(startDate)
+      console.log('Loaded entries:', entries)
+      setTodayEntries(entries)
+      setError(null)
     } catch (err) {
-      console.error('Failed to load entries:', err);
-      setError('Failed to load entries from server');
+      console.error('Failed to load entries:', err)
+      setError('Failed to load entries from server')
     } finally {
-      setIsLoading(false);
+      setIsLoading(false)
     }
-  }, []);
+  }, [])
 
   useEffect(() => {
-    loadEntries();
-  }, [loadEntries]);
+    loadEntries()
+  }, [loadEntries])
 
   // WEBSOCKET DISABLED FOR DEBUGGING
   // Real-time sync: Listen for new entries from other devices
@@ -66,37 +66,37 @@ export function useCoffeeEntries() {
 
   const addEntry = useCallback(async () => {
     if (isAdding) {
-      console.log('[addEntry] Already adding, returning');
-      return;
+      console.log('[addEntry] Already adding, returning')
+      return
     }
 
-    console.log('[addEntry] Starting addEntry...');
-    setIsAdding(true);
-    setError(null);
+    console.log('[addEntry] Starting addEntry...')
+    setIsAdding(true)
+    setError(null)
 
     try {
-      console.log('[addEntry] Calling API...');
+      console.log('[addEntry] Calling API...')
       const newEntry = await apiClient.addEntry(
         DEFAULT_COFFEE_TYPE.brand,
         DEFAULT_COFFEE_TYPE.beanName
-      );
-      console.log('[addEntry] Created entry:', newEntry.id);
+      )
+      console.log('[addEntry] Created entry:', newEntry.id)
 
       // Optimistic update (NO WebSocket echo anymore)
-      console.log('[addEntry] Optimistic update - adding to state');
-      setTodayEntries(prevEntries => {
-        console.log('[addEntry] Current entries:', prevEntries.length);
-        return [newEntry, ...prevEntries];
-      });
+      console.log('[addEntry] Optimistic update - adding to state')
+      setTodayEntries((prevEntries) => {
+        console.log('[addEntry] Current entries:', prevEntries.length)
+        return [newEntry, ...prevEntries]
+      })
     } catch (err) {
-      console.error('Failed to add entry:', err);
-      setError('Failed to add coffee entry');
+      console.error('Failed to add entry:', err)
+      setError('Failed to add coffee entry')
       // Reload to get correct state
-      loadEntries();
+      loadEntries()
     } finally {
-      setIsAdding(false);
+      setIsAdding(false)
     }
-  }, [isAdding, loadEntries]);
+  }, [isAdding, loadEntries])
 
   return {
     todayEntries,
@@ -105,5 +105,5 @@ export function useCoffeeEntries() {
     isLoading,
     isAdding,
     error,
-  };
+  }
 }

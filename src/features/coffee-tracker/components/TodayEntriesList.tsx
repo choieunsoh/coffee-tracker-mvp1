@@ -1,12 +1,12 @@
-import { Box, List, ListItem, Typography, IconButton } from '@mui/material';
-import { Delete as DeleteIcon } from '@mui/icons-material';
-import { formatTime } from '@/shared/utils/date';
-import type { CoffeeEntry } from '../types/CoffeeEntry.types';
+import { Box, List, ListItem, Typography, IconButton } from '@mui/material'
+import { Delete as DeleteIcon } from '@mui/icons-material'
+import { formatTime } from '@/shared/utils/date'
+import type { CoffeeEntry } from '../types/CoffeeEntry.types'
 
 type TodayEntriesListProps = {
-  entries: CoffeeEntry[];
-  onDelete?: (id: string) => void;
-};
+  entries: CoffeeEntry[]
+  onDelete?: (id: string) => void
+}
 
 export function TodayEntriesList({ entries, onDelete }: TodayEntriesListProps) {
   return (
@@ -97,5 +97,5 @@ export function TodayEntriesList({ entries, onDelete }: TodayEntriesListProps) {
         </List>
       )}
     </Box>
-  );
+  )
 }
