@@ -56,31 +56,18 @@ print_info "Version bump type: $VERSION_TYPE"
 CURRENT_VERSION=$(node -p "require('./package.json').version")
 print_info "Current version: $CURRENT_VERSION"
 
-# Bump version using npm
+# Bump version
 print_info "Bumping version..."
-npm version $VERSION_TYPE -m "chore: bump version to %s"
-
-# Get new version
-NEW_VERSION=$(node -p "require('./package.json').version")
+NEW_VERSION=$(npm version $VERSION_TYPE --no-git-tag-version | sed 's/^v//')
 print_info "New version: $NEW_VERSION"
 
-# Update version.ts
-print_info "Updating version in source code..."
-echo "export const APP_VERSION = '$NEW_VERSION';" > src/config/version.ts
-echo "export const BUILD_DATE = '$(date -u +"%Y-%m-%dT%H:%M:%SZ")';" >> src/config/version.ts
-git add src/config/version.ts
-git commit --amend --no-edit
+# Commit version bump
+print_info "Committing version bump..."
+git add package.json
+git commit -m "chore: bump version to $NEW_VERSION"
 
-# Create and push git tag
+# Create git tag
 print_info "Creating git tag v$NEW_VERSION..."
-
-# Check if tag already exists and remove it
-if git rev-parse "$NEW_VERSION" >/dev/null 2>&1; then
-    print_warning "Tag v$NEW_VERSION already exists. Removing old tag..."
-    git tag -d "v$NEW_VERSION" || true
-    git push origin ":refs/tags/v$NEW_VERSION" || true
-fi
-
 git tag -a "v$NEW_VERSION" -m "Release version $NEW_VERSION"
 
 # Push commit and tags
