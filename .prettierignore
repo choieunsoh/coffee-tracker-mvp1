@@ -1,0 +1,15 @@
+node_modules
+dist
+build
+coverage
+.env
+.env.local
+.env.*.local
+*.log
+.DS_Store
+package-lock.json
+bun.lockb
+docker-compose.yml
+Dockerfile
+deploy.sh
+.data
