@@ -22,22 +22,29 @@
     "deploy:minor": "bash deploy.sh minor",
     "deploy:major": "bash deploy.sh major",
     "deploy": "bash deploy.sh patch",
-    "generate-api-key": "node -e \"const crypto = require('crypto'); const randomPart = crypto.randomBytes(32).toString('base64').replace(/[+/]/g, '').substring(0, 36); console.log('tod_' + randomPart);\"",
-    "docker:secure": "API_KEY=tod_JrTWmGd1As9iQFP6I2FWlJz0sDaAGPMbBF8k docker-compose up -d --build"
+    "generate-api-key": "node -e \"const crypto = require('crypto'); const randomPart = crypto.randomBytes(32).toString('base64').replace(/[+/]/g, '').substring(0, 36); console.log('tod_' + randomPart);\""
   },
   "dependencies": {
     "@emotion/react": "^11.13.5",
     "@emotion/styled": "^11.13.5",
     "@mui/icons-material": "^7.3.9",
     "@mui/material": "^6.4.5",
+    "cookie-parser": "^1.4.7",
     "cors": "^2.8.5",
     "express": "^4.21.2",
     "express-rate-limit": "^8.3.1",
+    "express-session": "^1.19.0",
+    "passport": "^0.7.0",
+    "passport-facebook": "^3.0.0",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
     "zod": "^3.24.1"
   },
   "devDependencies": {
+    "@types/cookie-parser": "^1.4.10",
+    "@types/express-session": "^1.18.2",
+    "@types/passport": "^1.0.17",
+    "@types/passport-facebook": "^3.0.4",
     "@types/react": "^19.0.10",
     "@types/react-dom": "^19.0.2",
     "@vitejs/plugin-react": "^4.3.4",
