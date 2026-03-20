@@ -9,7 +9,14 @@
     "build": "tsc && vite build",
     "preview": "vite preview",
     "type-check": "tsc --noEmit",
-    "start": "node server.js"
+    "start": "node server.js",
+    "docker:build": "docker-compose build",
+    "docker:up": "docker-compose up -d",
+    "docker:down": "docker-compose down",
+    "docker:restart": "docker-compose restart",
+    "docker:logs": "docker-compose logs -f",
+    "docker:clean": "docker-compose down -v --rmi all",
+    "docker:rebuild": "docker-compose down -v && docker-compose build --no-cache && docker-compose up -d"
   },
   "dependencies": {
     "@emotion/react": "^11.13.5",
