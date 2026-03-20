@@ -66,75 +66,19 @@ print_info "Committing version bump..."
 git add package.json
 git commit -m "chore: bump version to $NEW_VERSION"
 
-# Check remote before pushing
-print_info "Checking remote configuration..."
-
-# Check if remote exists
-if ! git remote get-url origin >/dev/null 2>&1; then
-    print_error "No remote 'origin' found. Please add a remote first:"
-    echo "  git remote add origin <repository-url>"
-    exit 1
-fi
-
-REMOTE_URL=$(git remote get-url origin)
-print_info "Remote: $REMOTE_URL"
-
-# Check current branch
-CURRENT_BRANCH=$(git branch --show-current)
-print_info "Current branch: $CURRENT_BRANCH"
-
-# Check if we're pushing to the right branch
-if [ "$CURRENT_BRANCH" != "main" ] && [ "$CURRENT_BRANCH" != "master" ]; then
-    print_warning "Not on main/master branch. Current branch: $CURRENT_BRANCH"
-    read -p "Continue anyway? (y/N) " -n 1 -r
-    echo
-    if [[ ! $REPLY =~ ^[Yy]$ ]]; then
-        print_error "Deployment cancelled"
-        exit 1
-    fi
-fi
-
-# Check if remote has commits we don't have
-print_info "Checking for remote changes..."
-git fetch origin >/dev/null 2>&1 || true
-
-if git rev-parse --verify "origin/$CURRENT_BRANCH" >/dev/null 2>&1; then
-    LOCAL_COMMIT=$(git rev-parse HEAD)
-    REMOTE_COMMIT=$(git rev-parse "origin/$CURRENT_BRANCH")
-
-    if [ "$LOCAL_COMMIT" != "$REMOTE_COMMIT" ]; then
-        print_error "Local and remote branches have diverged!"
-        echo ""
-        echo "Local commits:"
-        git log --oneline HEAD ^origin/$CURRENT_BRANCH 2>/dev/null || echo "  (none)"
-        echo ""
-        echo "Remote commits:"
-        git log --oneline origin/$CURRENT_BRANCH ^HEAD 2>/dev/null || echo "  (none)"
-        echo ""
-        read -p "Pull remote changes first? (y/N) " -n 1 -r
-        echo
-        if [[ $REPLY =~ ^[Yy]$ ]]; then
-            print_info "Pulling remote changes..."
-            git pull origin $CURRENT_BRANCH
-            print_warning "Please review changes and run deployment again"
-            exit 1
-        else
-            print_error "Deployment cancelled to prevent conflicts"
-            exit 1
-        fi
-    fi
-fi
-
-print_info "Remote check passed ✓"
-
 # Create git tag
 print_info "Creating git tag v$NEW_VERSION..."
 git tag -a "v$NEW_VERSION" -m "Release version $NEW_VERSION"
 
-# Push commit and tags
-print_info "Pushing to remote..."
-git push
-git push --tags
+# Check if remote exists and push
+if git remote get-url origin >/dev/null 2>&1; then
+    print_info "Remote found - pushing to origin..."
+    git push
+    git push --tags
+else
+    print_warning "No remote configured - skipping git push"
+    print_warning "Tag v$NEW_VERSION created locally only"
+fi
 
 # Deploy to Docker
 print_info "Building and deploying Docker container..."
