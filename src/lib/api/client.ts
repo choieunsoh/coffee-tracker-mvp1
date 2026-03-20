@@ -2,6 +2,7 @@ const API_BASE = window.location.origin;
 
 export interface CoffeeEntry {
   id: string;
+  userId: string;
   brand: string;
   beanName: string;
   createdAt: number;
@@ -12,7 +13,9 @@ export class CoffeeApiClient {
     const url = startDate
       ? `${API_BASE}/api/entries?startDate=${startDate}`
       : `${API_BASE}/api/entries`;
-    const response = await fetch(url);
+    const response = await fetch(url, {
+      credentials: 'include'
+    });
     if (!response.ok) throw new Error('Failed to fetch entries');
     return response.json();
   }
@@ -21,7 +24,8 @@ export class CoffeeApiClient {
     const response = await fetch(`${API_BASE}/api/entries`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ brand, beanName })
+      body: JSON.stringify({ brand, beanName }),
+      credentials: 'include'
     });
     if (!response.ok) throw new Error('Failed to add entry');
     return response.json();
@@ -29,7 +33,8 @@ export class CoffeeApiClient {
 
   async deleteEntry(id: string): Promise<void> {
     const response = await fetch(`${API_BASE}/api/entries/${id}`, {
-      method: 'DELETE'
+      method: 'DELETE',
+      credentials: 'include'
     });
     if (!response.ok) throw new Error('Failed to delete entry');
   }
