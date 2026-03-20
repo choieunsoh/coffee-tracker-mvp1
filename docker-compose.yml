@@ -13,9 +13,8 @@ services:
     restart: always
     environment:
       - NODE_ENV=production
-      - ALLOWED_ORIGINS=${ALLOWED_ORIGINS:-http://localhost:5001}
     env_file:
-      - .env  # For runtime config (Facebook OAuth, etc.), NOT for APP_VERSION
+      - .env  # For runtime config (Facebook OAuth, ALLOWED_ORIGINS, etc.), NOT for APP_VERSION
     volumes:
       # Persist database to local machine (./data directory)
       - ./data:/app/data
