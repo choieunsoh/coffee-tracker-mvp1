@@ -1,8 +1,11 @@
-import express from 'express';
 import cors from 'cors';
+import express from 'express';
 import rateLimit from 'express-rate-limit';
-import path from 'path';
+import session from 'express-session';
 import fs from 'fs';
+import passport from 'passport';
+import { Strategy as FacebookStrategy } from 'passport-facebook';
+import path from 'path';
 import { fileURLToPath } from 'url';
 
 const __filename = fileURLToPath(import.meta.url);
@@ -26,22 +29,24 @@ const allowedOrigins = process.env.ALLOWED_ORIGINS
   ? process.env.ALLOWED_ORIGINS.split(',')
   : ['http://localhost:3001', 'http://localhost:5001'];
 
-app.use(cors({
-  origin: function (origin, callback) {
-    // Allow requests with no origin (like mobile apps or curl requests)
-    if (!origin) return callback(null, true);
+app.use(
+  cors({
+    origin: function (origin, callback) {
+      // Allow requests with no origin (like mobile apps or curl requests)
+      if (!origin) return callback(null, true);
 
-    // Check if origin is in allowed list
-    if (allowedOrigins.indexOf(origin) !== -1) {
-      callback(null, true);
-    } else {
-      callback(new Error('CORS not allowed'));
-    }
-  },
-  credentials: true,
-  methods: ['GET', 'POST', 'DELETE'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'X-API-Key'],
-}));
+      // Check if origin is in allowed list
+      if (allowedOrigins.indexOf(origin) !== -1) {
+        callback(null, true);
+      } else {
+        callback(new Error('CORS not allowed'));
+      }
+    },
+    credentials: true,
+    methods: ['GET', 'POST', 'DELETE'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'X-API-Key'],
+  }),
+);
 
 app.use(express.json());
 app.use(express.static('dist'));
@@ -62,15 +67,116 @@ const apiLimiter = rateLimit({
 // Apply rate limiting to API routes only
 app.use('/api/', apiLimiter);
 
-// No authentication middleware (removed - API keys not suitable for frontend apps)
+// ============================================
+// Session & Authentication Middleware
+// ============================================
 
-// Apply authentication to API routes
-// API routes (no authentication middleware)
+// Session configuration (must be before Passport)
+app.use(
+  session({
+    secret: process.env.SESSION_SECRET || 'coffee-tracker-secret-change-in-production',
+    resave: false,
+    saveUninitialized: false,
+    cookie: {
+      secure: process.env.NODE_ENV === 'production', // HTTPS only in production
+      maxAge: 24 * 60 * 60 * 1000, // 24 hours
+      httpOnly: true, // Prevent XSS
+      sameSite: 'lax', // CSRF protection
+    },
+  }),
+);
+
+// Passport initialization
+app.use(passport.initialize());
+app.use(passport.session());
+
+// Facebook OAuth Strategy
+passport.use(
+  new FacebookStrategy(
+    {
+      clientID: process.env.FACEBOOK_APP_ID || '',
+      clientSecret: process.env.FACEBOOK_APP_SECRET || '',
+      callbackURL: '/api/auth/facebook/callback',
+      profileFields: ['id', 'displayName', 'email'],
+    },
+    function (accessToken, refreshToken, profile, done) {
+      // Create user object from Facebook profile
+      const user = {
+        facebookId: profile.id,
+        name: profile.displayName,
+        email: profile.emails?.[0]?.value,
+        provider: 'facebook',
+      };
+      return done(null, user);
+    },
+  ),
+);
+
+// Serialize/deserialize user for session
+passport.serializeUser((user, done) => done(null, user));
+passport.deserializeUser((user, done) => done(null, user));
+
+// ============================================
+// Authentication Routes
+// ============================================
+
+// Start Facebook OAuth flow
+app.get('/api/auth/facebook', passport.authenticate('facebook', { scope: ['email'] }));
+
+// Facebook OAuth callback
+app.get('/api/auth/facebook/callback', passport.authenticate('facebook', { failureRedirect: '/login' }), (req, res) => {
+  // Successful authentication - migrate data if needed, then redirect
+  if (req.user && req.user.facebookId) {
+    migrateDataToUser(`facebook:${req.user.facebookId}`);
+  }
+  res.redirect('/');
+});
+
+// Get current user info
+app.get('/api/auth/me', (req, res) => {
+  if (!req.isAuthenticated() || !req.user) {
+    return res.status(401).json({ error: 'Not authenticated' });
+  }
+  res.json(req.user);
+});
+
+// Logout
+app.post('/api/auth/logout', (req, res, next) => {
+  req.logout((err) => {
+    if (err) return next(err);
+    res.json({ success: true });
+  });
+});
+
+// ============================================
+// Authentication Middleware
+// ============================================
+
+const requireAuth = (req, res, next) => {
+  if (!req.isAuthenticated() || !req.user) {
+    return res.status(401).json({ error: 'Authentication required' });
+  }
+  next();
+};
+
+// Helper function to get user ID from request
+const getUserId = (req) => {
+  return req.user?.facebookId ? `facebook:${req.user.facebookId}` : null;
+};
+
+// ============================================
+// API Routes
+// ============================================
 
 // API Routes
-app.get('/api/entries', (req, res) => {
+app.get('/api/entries', requireAuth, (req, res) => {
   try {
     const { startDate } = req.query;
+    const userId = getUserId(req);
+
+    if (!userId) {
+      return res.status(401).json({ error: 'Invalid user' });
+    }
 
     // Validate startDate parameter
     if (startDate !== undefined) {
@@ -84,9 +190,7 @@ app.get('/api/entries', (req, res) => {
     }
 
     const data = readDatabase();
-    const todayEntries = startDate
-      ? getEntriesSince(data, parseInt(startDate))
-      : getTodayEntries(data);
+    const todayEntries = startDate ? getEntriesSince(data, parseInt(startDate), userId) : getTodayEntries(data, userId);
     res.json(todayEntries);
   } catch (error) {
     console.error('Failed to fetch entries:', error);
@@ -94,9 +198,14 @@ app.get('/api/entries', (req, res) => {
   }
 });
 
-app.post('/api/entries', (req, res) => {
+app.post('/api/entries', requireAuth, (req, res) => {
   try {
     const { brand, beanName } = req.body;
+    const userId = getUserId(req);
+
+    if (!userId) {
+      return res.status(401).json({ error: 'Invalid user' });
+    }
 
     // Validate request body
     if (!req.body || typeof req.body !== 'object') {
@@ -131,9 +240,10 @@ app.post('/api/entries', (req, res) => {
 
     const newEntry = {
       id: crypto.randomUUID(),
+      userId, // NEW: Associate with user
       brand: brand?.trim() || 'Starbucks',
       beanName: beanName?.trim() || 'House Blend',
-      createdAt: Date.now()
+      createdAt: Date.now(),
     };
 
     const data = readDatabase();
@@ -147,9 +257,14 @@ app.post('/api/entries', (req, res) => {
   }
 });
 
-app.delete('/api/entries/:id', (req, res) => {
+app.delete('/api/entries/:id', requireAuth, (req, res) => {
   try {
     const { id } = req.params;
+    const userId = getUserId(req);
+
+    if (!userId) {
+      return res.status(401).json({ error: 'Invalid user' });
+    }
 
     // Validate id parameter
     if (!id || typeof id !== 'string') {
@@ -159,14 +274,19 @@ app.delete('/api/entries/:id', (req, res) => {
       return res.status(400).json({ error: 'Invalid id: cannot be empty' });
     }
 
-    // Check if entry exists
+    // Check if entry exists and belongs to user
     const data = readDatabase();
-    const entryExists = data.some(entry => entry.id === id);
-    if (!entryExists) {
+    const entry = data.find((entry) => entry.id === id);
+
+    if (!entry) {
       return res.status(404).json({ error: 'Entry not found' });
     }
 
-    const filtered = data.filter(entry => entry.id !== id);
+    if (entry.userId !== userId) {
+      return res.status(403).json({ error: 'Forbidden: Entry belongs to another user' });
+    }
+
+    const filtered = data.filter((entry) => entry.id !== id);
     writeDatabase(filtered);
 
     res.json({ success: true });
@@ -193,14 +313,32 @@ function writeDatabase(data) {
   fs.writeFileSync(DB_FILE, JSON.stringify(data, null, 2));
 }
 
-function getTodayEntries(allEntries) {
+function getTodayEntries(allEntries, userId) {
   const startOfDay = new Date();
   startOfDay.setHours(0, 0, 0, 0);
-  return allEntries.filter(entry => entry.createdAt >= startOfDay.getTime());
+  return allEntries.filter((entry) => entry.createdAt >= startOfDay.getTime() && entry.userId === userId);
 }
 
-function getEntriesSince(allEntries, startDate) {
-  return allEntries.filter(entry => entry.createdAt >= startDate);
+function getEntriesSince(allEntries, startDate, userId) {
+  return allEntries.filter((entry) => entry.createdAt >= startDate && entry.userId === userId);
+}
+
+// Migrate existing data to first user on first login
+function migrateDataToUser(userId) {
+  const data = readDatabase();
+
+  // Check if migration needed (entries without userId)
+  const needsMigration = data.some((entry) => !entry.userId);
+
+  if (needsMigration) {
+    console.log('Migrating existing data to user:', userId);
+    const migratedData = data.map((entry) => ({
+      ...entry,
+      userId: entry.userId || userId,
+    }));
+    writeDatabase(migratedData);
+    console.log('Migration complete. Migrated', data.length, 'entries.');
+  }
 }
 
 // Start server
