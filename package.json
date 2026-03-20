@@ -21,7 +21,9 @@
     "deploy:patch": "bash deploy.sh patch",
     "deploy:minor": "bash deploy.sh minor",
     "deploy:major": "bash deploy.sh major",
-    "deploy": "bash deploy.sh patch"
+    "deploy": "bash deploy.sh patch",
+    "generate-api-key": "node -e \"const crypto = require('crypto'); const randomPart = crypto.randomBytes(32).toString('base64').replace(/[+/]/g, '').substring(0, 36); console.log('tod_' + randomPart);\"",
+    "docker:secure": "API_KEY=tod_JrTWmGd1As9iQFP6I2FWlJz0sDaAGPMbBF8k docker-compose up -d --build"
   },
   "dependencies": {
     "@emotion/react": "^11.13.5",
