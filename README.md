@@ -1,13 +1,15 @@
 # Coffee Tracker MVP
 
-A simple coffee tracking application with real-time updates, built with React, TypeScript, and Express.
+A simple coffee tracking application with Facebook authentication, built with React, TypeScript, and Express.
 
-![Version](https://img.shields.io/badge/version-1.3.0-blue)
+![Version](https://img.shields.io/badge/version-1.5.0-blue)
 ![License](https://img.shields.io/badge/license-MIT-green)
 
 ## Features
 
+- ✅ **Facebook Authentication** - Secure OAuth login with multi-user support
 - ✅ **Track Daily Coffee Consumption** - Log each coffee you drink
+- ✅ **User Data Isolation** - Each user has their own private coffee entries
 - ✅ **Persistent Storage** - File-based database (JSON)
 - ✅ **Modern UI** - Built with Material-UI (MUI)
 - ✅ **Docker Support** - Easy containerized deployment
@@ -25,6 +27,9 @@ A simple coffee tracking application with real-time updates, built with React, T
 
 ### Backend
 - **Express** - Web server
+- **Passport.js** - Authentication framework
+- **Facebook OAuth** - Third-party authentication
+- **Express Session** - Session management
 - **Node.js/Bun** - Runtime
 - **File-based Storage** - JSON database
 
@@ -127,7 +132,7 @@ bun run deploy:major
 
 The app displays version and build time in the footer:
 ```
-v1.3.0 • 20/03/2026 14:30:45
+v1.5.0 • 20/03/2026 14:30:45
 ```
 
 ## Project Structure
@@ -173,12 +178,15 @@ This application uses a **simple JSON file** for data storage:
 [
   {
     "id": "550e8400-e29b-41d4-a716-446655440000",
+    "userId": "facebook:123456789",
     "brand": "Starbucks",
     "beanName": "House Blend",
     "createdAt": 1679089200000
   }
 ]
 ```
+
+**Note:** Each entry is associated with a user via the `userId` field. Users can only access their own entries.
 
 ### How It Works
 
@@ -212,31 +220,58 @@ See [`.docs/SECURITY_AUDIT.md`](.docs/SECURITY_AUDIT.md) for database recommenda
 
 ## API Endpoints
 
-### GET /api/entries
+**Note:** All API endpoints require authentication. You must be logged in via Facebook OAuth to access these endpoints.
+
+### Authentication Endpoints
+
+#### GET /api/auth/facebook
+Initiates Facebook OAuth login flow.
+
+#### GET /api/auth/facebook/callback
+OAuth callback endpoint (handled by Passport.js).
+
+#### GET /api/auth/me
+Returns current authenticated user info.
+
+```bash
+curl http://localhost:5001/api/auth/me --cookie-jar cookies.txt --cookie cookies.txt
+```
+
+#### POST /api/auth/logout
+Logs out the current user and destroys session.
+
+```bash
+curl -X POST http://localhost:5001/api/auth/logout --cookie-jar cookies.txt --cookie cookies.txt
+```
+
+### Data Endpoints (Require Authentication)
+
+#### GET /api/entries
 Get coffee entries for today or since a specific date.
 
 ```bash
-# Get today's entries
-curl http://localhost:5001/api/entries
+# Get today's entries (requires authentication)
+curl http://localhost:5001/api/entries --cookie-jar cookies.txt --cookie cookies.txt
 
-# Get entries since timestamp
-curl http://localhost:5001/api/entries?startDate=1679089200000
+# Get entries since timestamp (requires authentication)
+curl "http://localhost:5001/api/entries?startDate=1679089200000" --cookie-jar cookies.txt --cookie cookies.txt
 ```
 
-### POST /api/entries
-Add a new coffee entry.
+#### POST /api/entries
+Add a new coffee entry (requires authentication).
 
 ```bash
 curl -X POST http://localhost:5001/api/entries \
   -H "Content-Type: application/json" \
-  -d '{"brand":"Starbucks","beanName":"House Blend"}'
+  -d '{"brand":"Starbucks","beanName":"House Blend"}' \
+  --cookie-jar cookies.txt --cookie cookies.txt
 ```
 
-### DELETE /api/entries/:id
-Delete a coffee entry.
+#### DELETE /api/entries/:id
+Delete a coffee entry (requires authentication, ownership verified).
 
 ```bash
-curl -X DELETE http://localhost:5001/api/entries/abc123
+curl -X DELETE http://localhost:5001/api/entries/abc123 --cookie-jar cookies.txt --cookie cookies.txt
 ```
 
 ## Docker Commands
@@ -271,18 +306,35 @@ bun run docker:clean
 Create a `.env` file in the project root:
 
 ```bash
+# Facebook OAuth Credentials
+FACEBOOK_APP_ID=your_facebook_app_id_here
+FACEBOOK_APP_SECRET=your_facebook_app_secret_here
+
+# Session Secret (generate with: openssl rand -base64 32)
+SESSION_SECRET=your_random_session_secret_here
+
 # Allowed CORS origins (comma-separated)
 # For local development:
 ALLOWED_ORIGINS=http://localhost:5001
 
 # For production deployment:
 # ALLOWED_ORIGINS=https://your-domain.com,https://www.your-domain.com
+
+# Environment
+NODE_ENV=production
 ```
 
-**Available variables:**
+**Required Variables:**
+- `FACEBOOK_APP_ID` - Facebook App ID from https://developers.facebook.com/apps/
+- `FACEBOOK_APP_SECRET` - Facebook App Secret
+- `SESSION_SECRET` - Random string for session encryption
+
+**Optional Variables:**
 - `ALLOWED_ORIGINS` - Comma-separated list of allowed origins (default: http://localhost:5001)
 - `PORT` - Server port (default: 5001)
 - `NODE_ENV` - Environment (development/production)
+
+**Setup Guide:** See [`.docs/FACEBOOK_AUTH_SETUP.md`](.docs/FACEBOOK_AUTH_SETUP.md) for detailed Facebook App setup instructions.
 
 ### Data Storage
 
@@ -322,6 +374,9 @@ See [`.docs/COMMIT_CONVENTIONS.md`](.docs/COMMIT_CONVENTIONS.md) for details.
 
 ## Documentation
 
+- [Facebook Auth Setup](.docs/FACEBOOK_AUTH_SETUP.md) - Complete Facebook OAuth setup guide
+- [Facebook Auth Summary](.docs/FACEBOOK_AUTH_SUMMARY.md) - Implementation overview
+- [Facebook Auth Verification](.docs/FACEBOOK_AUTH_VERIFICATION.md) - Implementation verification report
 - [Deployment Guide](.docs/DEPLOYMENT_GUIDE.md) - Complete deployment instructions
 - [Commit Conventions](.docs/COMMIT_CONVENTIONS.md) - Conventional commits guide
 - [Security Audit](.docs/SECURITY_AUDIT.md) - Security analysis and recommendations
@@ -330,31 +385,61 @@ See [`.docs/COMMIT_CONVENTIONS.md`](.docs/COMMIT_CONVENTIONS.md) for details.
 
 ## Security
 
-⚠️ **This app is designed for personal/local use.**
+✅ **This app now includes Facebook OAuth authentication for multi-user support.**
 
 ### Current Security Features
+- ✅ **Facebook OAuth** - Secure third-party authentication
+- ✅ **Session Management** - Secure httpOnly cookies
+- ✅ **User Data Isolation** - Each user can only access their own entries
 - ✅ **CORS Protection** - Restricts API access to allowed origins
 - ✅ **Rate Limiting** - 100 requests per 15 minutes per IP
 - ✅ **Input Validation** - All API inputs validated
 - ✅ **Secure Headers** - Proper CORS and security headers
+- ✅ **CSRF Protection** - SameSite cookie protection
 
-### Before Deploying to Cloud
-⚠️ **This app has NO authentication** - anyone who can access your URL can use it.
+### Authentication Flow
+1. User clicks "Continue with Facebook"
+2. Redirected to Facebook OAuth page
+3. User approves app
+4. Facebook redirects back with access token
+5. Server creates secure session
+6. User can now access protected endpoints
+7. Session expires after 24 hours
 
-**For personal/local use:** Current setup is acceptable.
-**For public cloud deployment:** You should add authentication. See [Security Audit](.docs/SECURITY_AUDIT.md) for recommendations.
+### Data Privacy
+- Each user's coffee entries are private
+- Users can only see their own entries
+- Ownership verified on DELETE operations
+- Session cookies are httpOnly (prevent XSS)
 
-### Why No API Keys?
-API keys in frontend code are **not secure** - they're visible in the browser's JavaScript bundle. This app is designed for:
-- Personal use on your home network
-- Development/learning purposes
-- Local deployment only
+### Before Deploying to Production
 
-For production cloud deployment, consider:
-- IP whitelist restrictions
-- Password authentication
-- Third-party auth (Auth0, Firebase, etc.)
-- VPN/private network access
+**Required for Production:**
+- ✅ HTTPS/TLS (required for Facebook OAuth in production)
+- ✅ Update Facebook OAuth settings with production URLs
+- ✅ Use production Facebook App (separate from development)
+- ✅ Strong, randomly generated SESSION_SECRET
+- ✅ Configure ALLOWED_ORIGINS with production domain(s)
+
+**Recommended for Production:**
+- Use Redis/MongoDB for session storage (instead of MemoryStore)
+- Enable secure cookies (set `cookie.secure: true`)
+- Add monitoring for failed authentication attempts
+- Set up database backup strategy
+
+### Development vs Production
+**Development (localhost):**
+- HTTP is acceptable
+- `cookie.secure: false` (required for HTTP)
+- Use test Facebook App
+
+**Production:**
+- MUST use HTTPS
+- `cookie.secure: true`
+- Use production Facebook App
+- Update OAuth redirect URIs
+
+See [`.docs/FACEBOOK_AUTH_SETUP.md`](.docs/FACEBOOK_AUTH_SETUP.md) for production deployment guide.
 
 ## Contributing
 
