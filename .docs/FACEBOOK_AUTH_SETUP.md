@@ -2,6 +2,26 @@
 
 This guide walks you through setting up Facebook OAuth authentication for the Coffee Tracker app.
 
+## Implementation Approach
+
+**This app uses server-side OAuth flow** with Passport.js, NOT the Facebook JavaScript SDK.
+
+**Why Server-Side?**
+- ✅ More secure (app secret never exposed to client)
+- ✅ Industry standard for session-based authentication
+- ✅ Simpler to maintain and debug
+- ✅ Better error handling
+
+**What This Means:**
+- No `react-facebook-login` library needed
+- OAuth flow uses HTTP redirects (handled by Passport.js)
+- Session stored in httpOnly cookies (secure)
+- Frontend just checks auth status via API
+
+**Permissions Used:**
+- `public_profile` (basic user info - no app review needed)
+- NOT `email` (requires Facebook approval and app review)
+
 ## Prerequisites
 
 - A Facebook account (for creating the Facebook App)
@@ -126,6 +146,12 @@ docker-compose logs -f
 4. Complete the Facebook OAuth flow
 5. You should be redirected back to the app, logged in
 6. Your existing coffee entries should appear (migrated to your account)
+
+**Important Notes:**
+- This implementation uses **server-side OAuth flow** (not Facebook JavaScript SDK)
+- We use `public_profile` scope (not `email`) to avoid Facebook app review
+- Session cookies are used for authentication (httpOnly, secure, sameSite)
+- All API requests include `credentials: 'include'` to send session cookies
 
 ## Troubleshooting
 

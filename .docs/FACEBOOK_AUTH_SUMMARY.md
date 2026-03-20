@@ -9,6 +9,7 @@
    - Added `passport` for authentication framework
    - Added `passport-facebook` for Facebook OAuth strategy
    - Configured session middleware with secure cookie settings
+   - **Uses server-side OAuth flow** (NOT Facebook JavaScript SDK)
 
 2. **Facebook OAuth Flow**
    - `/api/auth/facebook` - Initiates Facebook login
@@ -28,6 +29,10 @@
 5. **Data Migration**
    - `migrateDataToUser()` - Migrates existing entries to first user on login
    - Updates data schema to include `userId` field
+
+6. **Facebook Configuration**
+   - Uses `public_profile` scope (not `email` - avoids Facebook app review)
+   - Profile fields: `id`, `displayName` (email not required)
 
 ### Frontend Changes
 
@@ -52,6 +57,9 @@
 - `@types/cookie-parser`
 - `@types/passport`
 - `@types/passport-facebook`
+
+**NOT Added:**
+- `react-facebook-login` - Not needed (using server-side OAuth flow instead)
 
 ### Documentation
 
