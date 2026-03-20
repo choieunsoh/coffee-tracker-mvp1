@@ -1,0 +1,36 @@
+{
+  "name": "coffee-tracker-mvp",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Coffee Tracker MVP - Standalone TypeScript application with real-time sync",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc && vite build",
+    "preview": "vite preview",
+    "type-check": "tsc --noEmit",
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "@emotion/react": "^11.13.5",
+    "@emotion/styled": "^11.13.5",
+    "@mui/icons-material": "^7.3.9",
+    "@mui/material": "^6.4.5",
+    "cors": "^2.8.5",
+    "express": "^4.21.2",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "zod": "^3.24.1"
+  },
+  "devDependencies": {
+    "@types/react": "^19.0.10",
+    "@types/react-dom": "^19.0.2",
+    "@vitejs/plugin-react": "^4.3.4",
+    "typescript": "^5.7.3",
+    "vite": "^6.0.11"
+  },
+  "engines": {
+    "bun": ">=1.3.0",
+    "node": ">=20.19.0"
+  }
+}

@@ -1,0 +1,14 @@
+services:
+  coffee-tracker:
+    build: .
+    container_name: coffee-tracker-sync
+    ports:
+      - "5001:5001"
+    restart: always
+    environment:
+      - NODE_ENV=production
+    volumes:
+      # Persist database to local machine (./data directory)
+      - ./data:/app/data
+    # Allow network access
+    network_mode: "bridge"

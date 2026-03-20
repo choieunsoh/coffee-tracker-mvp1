@@ -1,0 +1,17 @@
+node_modules
+npm-debug.log
+dist
+.git
+.gitignore
+.env
+.env.local
+.env.*.local
+.DS_Store
+*.log
+.vscode
+.idea
+coverage
+*.tsbuildinfo
+# Persisted database (should be mounted, not copied)
+data
+coffee-data.json
