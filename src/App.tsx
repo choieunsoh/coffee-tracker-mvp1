@@ -1,7 +1,7 @@
 import { Container, ThemeProvider, CssBaseline, Typography, Box } from '@mui/material';
 import { theme } from './shared/styles/theme';
 import { CoffeeTracker } from './features/coffee-tracker/components/CoffeeTracker';
-import { APP_VERSION } from './config/version';
+import { APP_VERSION, BUILD_DATE } from './config/version';
 
 export function App() {
   return (
@@ -37,7 +37,7 @@ export function App() {
           }}
         >
           <Typography variant="caption" sx={{ color: 'text.secondary', opacity: 0.7 }}>
-            v{APP_VERSION}
+            v{APP_VERSION} • {formatBuildDate(BUILD_DATE)}
           </Typography>
         </Box>
       </Box>
@@ -53,4 +53,23 @@ function getCurrentDate(): string {
     month: 'long',
     day: 'numeric',
   });
+}
+
+function formatBuildDate(isoDate: string): string {
+  const date = new Date(isoDate);
+
+  const dateFormatter = new Intl.DateTimeFormat('en-GB', {
+    day: '2-digit',
+    month: '2-digit',
+    year: 'numeric',
+  });
+
+  const timeFormatter = new Intl.DateTimeFormat('en-GB', {
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit',
+    hour12: false,
+  });
+
+  return `${dateFormatter.format(date)} ${timeFormatter.format(date)}`;
 }
