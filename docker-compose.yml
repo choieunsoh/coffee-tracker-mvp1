@@ -1,6 +1,12 @@
 services:
   coffee-tracker:
-    build: .
+    build:
+      context: .
+      dockerfile: Dockerfile
+      tags:
+        - coffee-tracker:${APP_VERSION:-latest}
+        - coffee-tracker:latest
+    image: coffee-tracker:${APP_VERSION:-latest}
     container_name: coffee-tracker-sync
     ports:
       - "5001:5001"
