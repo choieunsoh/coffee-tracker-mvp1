@@ -1,5 +1,6 @@
 import express from 'express';
 import cors from 'cors';
+import rateLimit from 'express-rate-limit';
 import path from 'path';
 import fs from 'fs';
 import { fileURLToPath } from 'url';
@@ -44,6 +45,48 @@ app.use(cors({
 
 app.use(express.json());
 app.use(express.static('dist'));
+
+// Rate limiting to prevent API abuse
+const apiLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 100, // Limit each IP to 100 requests per windowMs
+  message: { error: 'Too many requests from this IP, please try again later.' },
+  standardHeaders: true, // Return rate limit info in the `RateLimit-*` headers
+  legacyHeaders: false, // Disable the `X-RateLimit-*` headers
+  skip: (req) => {
+    // Skip rate limiting for static files
+    return req.path.startsWith('/assets') || req.path.startsWith('/favicon');
+  },
+});
+
+// Apply rate limiting to API routes only
+app.use('/api/', apiLimiter);
+
+// Authentication middleware (optional API key)
+const authenticateApiKey = (req, res, next) => {
+  const apiKey = req.headers['x-api-key'];
+
+  // If API_KEY is set, require it. Otherwise, allow open access.
+  const requiredApiKey = process.env.API_KEY;
+
+  if (!requiredApiKey) {
+    // No API key required - open access
+    return next();
+  }
+
+  if (!apiKey) {
+    return res.status(401).json({ error: 'Unauthorized: API key required' });
+  }
+
+  if (apiKey !== requiredApiKey) {
+    return res.status(403).json({ error: 'Forbidden: Invalid API key' });
+  }
+
+  next();
+};
+
+// Apply authentication to API routes
+app.use('/api/', authenticateApiKey);
 
 // API Routes
 app.get('/api/entries', (req, res) => {
