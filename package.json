@@ -26,7 +26,8 @@
     "deploy:minor": "bash deploy.sh minor",
     "deploy:major": "bash deploy.sh major",
     "deploy": "bash deploy.sh patch",
-    "generate-api-key": "node -e \"const crypto = require('crypto'); const randomPart = crypto.randomBytes(32).toString('base64').replace(/[+/]/g, '').substring(0, 36); console.log('tod_' + randomPart);\""
+    "generate:api-key": "openssl rand -base64 24 | tr -d '/+' | head -c 32 | sed 's/^/tod_/'",
+    "generate:session-secret": "openssl rand -hex 32"
   },
   "dependencies": {
     "@emotion/react": "^11.13.5",
