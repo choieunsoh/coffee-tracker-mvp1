@@ -18,10 +18,10 @@
     "docker:logs": "docker-compose logs -f",
     "docker:clean": "docker-compose down -v --rmi all",
     "docker:rebuild": "docker-compose down -v && docker-compose build --no-cache && docker-compose up -d",
-    "deploy:patch": "./deploy.sh patch",
-    "deploy:minor": "./deploy.sh minor",
-    "deploy:major": "./deploy.sh major",
-    "deploy": "./deploy.sh patch"
+    "deploy:patch": "bash deploy.sh patch",
+    "deploy:minor": "bash deploy.sh minor",
+    "deploy:major": "bash deploy.sh major",
+    "deploy": "bash deploy.sh patch"
   },
   "dependencies": {
     "@emotion/react": "^11.13.5",

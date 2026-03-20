@@ -6,6 +6,13 @@
 
 set -e  # Exit on error
 
+# Check if running in bash/sh
+if [ -z "$BASH_VERSION" ] && [ -z "$ZSH_VERSION" ]; then
+    echo "Error: This script must be run with bash"
+    echo "Usage: bash deploy.sh [patch|minor|major]"
+    exit 1
+fi
+
 # Colors for output
 RED='\033[0;31m'
 GREEN='\033[0;32m'
@@ -59,7 +66,8 @@ print_info "New version: $NEW_VERSION"
 
 # Update version.ts
 print_info "Updating version in source code..."
-sed -i "s/export const APP_VERSION = '[^']*';/export const APP_VERSION = '$NEW_VERSION';/" src/config/version.ts
+echo "export const APP_VERSION = '$NEW_VERSION';" > src/config/version.ts
+echo "export const BUILD_DATE = '$(date -u +"%Y-%m-%dT%H:%M:%SZ")';" >> src/config/version.ts
 git add src/config/version.ts
 git commit --amend --no-edit
 
