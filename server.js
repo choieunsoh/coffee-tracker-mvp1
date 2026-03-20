@@ -76,13 +76,17 @@ app.use(
   session({
     secret: process.env.SESSION_SECRET || 'coffee-tracker-secret-change-in-production',
     resave: false,
-    saveUninitialized: false,
+    saveUninitialized: true, // Change to true to ensure session is saved
+    rolling: false, // Don't reset session maxAge on every request
     cookie: {
-      secure: process.env.NODE_ENV === 'production', // HTTPS only in production
+      secure: false, // MUST be false for localhost/HTTP
+      sameSite: 'lax', // CSRF protection
       maxAge: 24 * 60 * 60 * 1000, // 24 hours
       httpOnly: true, // Prevent XSS
-      sameSite: 'lax', // CSRF protection
+      domain: undefined, // Let browser determine domain (works for localhost)
+      path: '/', // Ensure cookie is available for all paths
     },
+    name: 'coffee.sid', // Explicit session cookie name
   }),
 );
 
@@ -97,7 +101,7 @@ passport.use(
       clientID: process.env.FACEBOOK_APP_ID || '',
       clientSecret: process.env.FACEBOOK_APP_SECRET || '',
       callbackURL: '/api/auth/facebook/callback',
-      profileFields: ['id', 'displayName', 'email'],
+      profileFields: ['id', 'displayName'],
     },
     function (accessToken, refreshToken, profile, done) {
       // Create user object from Facebook profile
@@ -121,19 +125,29 @@ passport.deserializeUser((user, done) => done(null, user));
 // ============================================
 
 // Start Facebook OAuth flow
-app.get('/api/auth/facebook', passport.authenticate('facebook', { scope: ['email'] }));
+app.get('/api/auth/facebook', passport.authenticate('facebook', { scope: ['public_profile'] }));
 
 // Facebook OAuth callback
 app.get('/api/auth/facebook/callback', passport.authenticate('facebook', { failureRedirect: '/login' }), (req, res) => {
   // Successful authentication - migrate data if needed, then redirect
+  console.log('OAuth callback successful, user:', req.user);
   if (req.user && req.user.facebookId) {
     migrateDataToUser(`facebook:${req.user.facebookId}`);
   }
-  res.redirect('/');
+
+  // Save session before redirecting
+  req.session.save((err) => {
+    if (err) {
+      console.error('Session save error:', err);
+    }
+    console.log('Session saved, redirecting to /');
+    res.redirect('/');
+  });
 });
 
 // Get current user info
 app.get('/api/auth/me', (req, res) => {
+  console.log('/api/auth/me - isAuthenticated:', req.isAuthenticated(), 'session:', req.sessionID, 'user:', req.user);
   if (!req.isAuthenticated() || !req.user) {
     return res.status(401).json({ error: 'Not authenticated' });
   }
