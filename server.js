@@ -72,6 +72,8 @@ app.use('/api/', apiLimiter);
 // ============================================
 
 // Session configuration (must be before Passport)
+const sessionExpireDays = parseInt(process.env.SESSION_EXPIRE_DAYS || '7', 10);
+
 app.use(
   session({
     secret: process.env.SESSION_SECRET || 'coffee-tracker-secret-change-in-production',
@@ -81,7 +83,7 @@ app.use(
     cookie: {
       secure: false, // MUST be false for localhost/HTTP
       sameSite: 'lax', // CSRF protection
-      maxAge: 24 * 60 * 60 * 1000, // 24 hours
+      maxAge: sessionExpireDays * 24 * 60 * 60 * 1000, // Configurable (default: 7 days)
       httpOnly: true, // Prevent XSS
       domain: undefined, // Let browser determine domain (works for localhost)
       path: '/', // Ensure cookie is available for all paths
