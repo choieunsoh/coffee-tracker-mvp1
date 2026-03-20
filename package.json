@@ -1,6 +1,7 @@
 {
   "name": "coffee-tracker-mvp",
-  "version": "0.1.0",
+  "version": "1.0.0",
+  "license": "MIT",
   "private": true,
   "type": "module",
   "description": "Coffee Tracker MVP - Standalone TypeScript application with real-time sync",
@@ -16,7 +17,11 @@
     "docker:restart": "docker-compose restart",
     "docker:logs": "docker-compose logs -f",
     "docker:clean": "docker-compose down -v --rmi all",
-    "docker:rebuild": "docker-compose down -v && docker-compose build --no-cache && docker-compose up -d"
+    "docker:rebuild": "docker-compose down -v && docker-compose build --no-cache && docker-compose up -d",
+    "deploy:patch": "./deploy.sh patch",
+    "deploy:minor": "./deploy.sh minor",
+    "deploy:major": "./deploy.sh major",
+    "deploy": "./deploy.sh patch"
   },
   "dependencies": {
     "@emotion/react": "^11.13.5",
