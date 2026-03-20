@@ -8,7 +8,6 @@ A simple coffee tracking application with real-time updates, built with React, T
 ## Features
 
 - ✅ **Track Daily Coffee Consumption** - Log each coffee you drink
-- ✅ **Real-time Updates** - See entries instantly (when WebSocket enabled)
 - ✅ **Persistent Storage** - File-based database (JSON)
 - ✅ **Modern UI** - Built with Material-UI (MUI)
 - ✅ **Docker Support** - Easy containerized deployment

@@ -334,7 +334,6 @@ bun run build
 
 ### Low Priority
 - [ ] Migrate to real database
-- [ ] Add WebSocket sync (currently disabled)
 - [ ] Add user settings
 
 ## AI Assistant Guidelines
