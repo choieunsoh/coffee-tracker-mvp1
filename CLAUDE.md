@@ -11,8 +11,8 @@ This document provides context for AI assistants working on the Coffee Tracker M
 - Automated versioning and deployment
 
 **Target Use:** Personal/local coffee consumption tracking
-**Current Status:** Functional MVP, suitable for personal use
-**Production Ready:** No (security improvements needed - see `.docs/SECURITY_AUDIT.md`)
+**Current Status:** Functional MVP with CORS + rate limiting
+**Production Ready:** No - lacks authentication (see `.docs/SECURITY_AUDIT.md`)
 
 ## Tech Stack
 
@@ -262,16 +262,22 @@ bun run docker:down
 
 ## Security Considerations
 
-**IMPORTANT:** This app has known security issues (see `.docs/SECURITY_AUDIT.md`):
+**IMPORTANT:** This app has **NO authentication** (see `.docs/SECURITY_AUDIT.md`):
 
-- ❌ Wide-open CORS (accepts requests from any origin)
-- ❌ No input validation
-- ❌ No rate limiting
-- ❌ No authentication
-- ❌ Verbose error messages
+- ✅ CORS protection (restricted to ALLOWED_ORIGINS)
+- ✅ Rate limiting (100 requests/15min per IP)
+- ✅ Input validation on all endpoints
+- ❌ **NO authentication** - anyone with URL can access
+- ⚠️ File-based storage (not concurrent-safe)
 
-**For personal use:** Acceptable
-**For production:** Must fix security issues first
+**For personal/local use:** ✅ Acceptable with CORS restrictions
+**For cloud deployment:** ❌ Must add authentication first
+
+### Security Features Implemented
+1. **CORS Protection** - Only allows configured origins
+2. **Rate Limiting** - Prevents API abuse
+3. **Input Validation** - All API inputs validated
+4. **Secure Headers** - Proper security headers configured
 
 ## Troubleshooting
 
@@ -323,9 +329,9 @@ bun run build
 ## Future Improvements
 
 ### High Priority
-- [ ] Fix security issues (see audit)
-- [ ] Add input validation
-- [ ] Implement rate limiting
+- [ ] Add authentication (required for cloud deployment)
+- [ ] Migrate from file-based storage to SQLite/PostgreSQL
+- [ ] Add automated tests
 
 ### Medium Priority
 - [ ] Add automated tests

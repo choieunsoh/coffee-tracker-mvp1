@@ -40,7 +40,7 @@ app.use(cors({
   },
   credentials: true,
   methods: ['GET', 'POST', 'DELETE'],
-  allowedHeaders: ['Content-Type', 'Authorization'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-API-Key'],
 }));
 
 app.use(express.json());
@@ -62,31 +62,10 @@ const apiLimiter = rateLimit({
 // Apply rate limiting to API routes only
 app.use('/api/', apiLimiter);
 
-// Authentication middleware (optional API key)
-const authenticateApiKey = (req, res, next) => {
-  const apiKey = req.headers['x-api-key'];
-
-  // If API_KEY is set, require it. Otherwise, allow open access.
-  const requiredApiKey = process.env.API_KEY;
-
-  if (!requiredApiKey) {
-    // No API key required - open access
-    return next();
-  }
-
-  if (!apiKey) {
-    return res.status(401).json({ error: 'Unauthorized: API key required' });
-  }
-
-  if (apiKey !== requiredApiKey) {
-    return res.status(403).json({ error: 'Forbidden: Invalid API key' });
-  }
-
-  next();
-};
+// No authentication middleware (removed - API keys not suitable for frontend apps)
 
 // Apply authentication to API routes
-app.use('/api/', authenticateApiKey);
+// API routes (no authentication middleware)
 
 // API Routes
 app.get('/api/entries', (req, res) => {

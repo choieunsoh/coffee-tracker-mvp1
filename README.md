@@ -268,8 +268,19 @@ bun run docker:clean
 
 ### Environment Variables
 
-Currently, the app uses default configuration. You can customize:
+Create a `.env` file in the project root:
 
+```bash
+# Allowed CORS origins (comma-separated)
+# For local development:
+ALLOWED_ORIGINS=http://localhost:5001
+
+# For production deployment:
+# ALLOWED_ORIGINS=https://your-domain.com,https://www.your-domain.com
+```
+
+**Available variables:**
+- `ALLOWED_ORIGINS` - Comma-separated list of allowed origins (default: http://localhost:5001)
 - `PORT` - Server port (default: 5001)
 - `NODE_ENV` - Environment (development/production)
 
@@ -321,14 +332,29 @@ See [`.docs/COMMIT_CONVENTIONS.md`](.docs/COMMIT_CONVENTIONS.md) for details.
 
 ⚠️ **This app is designed for personal/local use.**
 
-Before deploying to production, please review the [Security Audit](.docs/SECURITY_AUDIT.md) which identifies:
-- Wide-open CORS configuration
-- Missing input validation
-- No rate limiting
-- No authentication
+### Current Security Features
+- ✅ **CORS Protection** - Restricts API access to allowed origins
+- ✅ **Rate Limiting** - 100 requests per 15 minutes per IP
+- ✅ **Input Validation** - All API inputs validated
+- ✅ **Secure Headers** - Proper CORS and security headers
 
-**For personal use:** Current setup is fine.
-**For production:** Security improvements required.
+### Before Deploying to Cloud
+⚠️ **This app has NO authentication** - anyone who can access your URL can use it.
+
+**For personal/local use:** Current setup is acceptable.
+**For public cloud deployment:** You should add authentication. See [Security Audit](.docs/SECURITY_AUDIT.md) for recommendations.
+
+### Why No API Keys?
+API keys in frontend code are **not secure** - they're visible in the browser's JavaScript bundle. This app is designed for:
+- Personal use on your home network
+- Development/learning purposes
+- Local deployment only
+
+For production cloud deployment, consider:
+- IP whitelist restrictions
+- Password authentication
+- Third-party auth (Auth0, Firebase, etc.)
+- VPN/private network access
 
 ## Contributing
 
