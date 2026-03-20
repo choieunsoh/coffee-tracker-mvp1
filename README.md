@@ -75,7 +75,27 @@ bun run docker:logs
 
 # Stop containers
 bun run docker:down
+
+# App runs on http://localhost:5001
 ```
+
+## Ports Configuration
+
+| Environment | Port | URL | Description |
+|-------------|------|-----|-------------|
+| **Development** | 3001 | http://localhost:3001 | Vite dev server (frontend only) |
+| **Production** | 5001 | http://localhost:5001 | Express server (full stack) |
+| **Docker** | 5001 | http://localhost:5001 | Containerized application |
+
+### Why Port 5001?
+
+- ✅ **Safe choice** - Not a standard system port
+- ✅ **No conflicts** - Doesn't clash with common development tools
+- ✅ **Easy to remember** - Simple and consistent
+- ✅ **No special permissions** - Works without admin/sudo
+- ✅ **Docker-friendly** - Maps cleanly from host to container
+
+**Note:** Port 5001 is used for the production Express server. The Vite dev server uses port 3001 to avoid conflicts during development.
 
 ## Version & Deployment
 
