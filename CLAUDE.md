@@ -4,15 +4,18 @@ This document provides context for AI assistants working on the Coffee Tracker M
 
 ## Project Overview
 
-**Coffee Tracker MVP** is a personal coffee tracking application with:
+**Coffee Tracker MVP** is a multi-user coffee tracking application with:
 - React 19 + TypeScript frontend
 - Express backend with file-based storage
+- Facebook OAuth authentication
+- User-specific data isolation
 - Docker deployment support
 - Automated versioning and deployment
 
-**Target Use:** Personal/local coffee consumption tracking
-**Current Status:** Functional MVP with CORS + rate limiting
-**Production Ready:** No - lacks authentication (see `.docs/SECURITY_AUDIT.md`)
+**Target Use:** Personal/local coffee consumption tracking with multi-user support
+**Current Status:** Functional MVP with Facebook authentication
+**Production Ready:** Yes - with HTTPS and proper Facebook OAuth configuration
+**Version:** 1.5.0
 
 ## Tech Stack
 
@@ -25,6 +28,9 @@ This document provides context for AI assistants working on the Coffee Tracker M
 
 ### Backend
 - **Express** - Minimal web server
+- **Passport.js** - Authentication framework
+- **Facebook OAuth** - Third-party authentication
+- **Express Session** - Session management with httpOnly cookies
 - **File-based storage** - JSON database in `./data/coffee-data.json`
 - **No database server** - Simple file I/O
 
@@ -44,30 +50,40 @@ src/
 │   ├── components/              # Feature-specific components
 │   │   ├── CoffeeCountButton.tsx
 │   │   ├── CoffeeTracker.tsx    # Main container
-│   │   └── TodayEntriesList.tsx
+│   │   ├── TodayEntriesList.tsx
+│   │   ├── LoginPage.tsx        # Facebook OAuth login page
+│   │   └── UserProfile.tsx      # User profile header
+│   ├── contexts/
+│   │   └── AuthContext.tsx      # Authentication state management
 │   ├── hooks/
 │   │   └── useCoffeeEntries.ts  # Business logic hook
 │   └── types/
 │       └── CoffeeEntry.types.ts # Shared types
 ├── lib/api/
-│   └── client.ts                # API client (singleton pattern)
+│   └── client.ts                # API client (singleton pattern, credentials: 'include')
 ├── config/
 │   ├── app.config.ts            # App configuration
 │   └── version.ts               # Auto-generated from package.json
 ├── shared/
 │   ├── styles/theme.ts          # MUI theme (dark mode)
 │   └── utils/date.ts            # Date utilities
-└── App.tsx                      # Root component
+└── App.tsx                      # Root component (wrapped with AuthProvider)
 ```
 
 ### Data Flow
 
-1. **User Action** → Component calls `useCoffeeEntries` hook
-2. **Hook** → Calls `apiClient` method
-3. **API Client** → Makes `fetch` request to Express server
-4. **Express** → Reads/writes `data/coffee-data.json`
-5. **Response** → Hook updates React state
-6. **Component** → Re-renders with new data
+1. **User visits app** → AuthContext checks `/api/auth/me` for authentication
+2. **Not authenticated** → Shows LoginPage
+3. **User clicks "Continue with Facebook"** → Redirects to `/api/auth/facebook`
+4. **Facebook OAuth** → User approves app → Redirects to `/api/auth/facebook/callback`
+5. **Server creates session** → Stores user info in session → Redirects to `/`
+6. **AuthContext detects user** → Shows main app with UserProfile
+7. **User Action** → Component calls `useCoffeeEntries` hook
+8. **Hook** → Calls `apiClient` method (with credentials: 'include')
+9. **API Client** → Makes `fetch` request with session cookie
+10. **Express** → Verifies session → Filters data by userId → Reads/writes `data/coffee-data.json`
+11. **Response** → Hook updates React state
+12. **Component** → Re-renders with new data
 
 ### Key Patterns
 
@@ -90,6 +106,21 @@ src/
 - All API responses typed with `CoffeeEntry` interface
 - Zod validation in types
 - TypeScript strict mode enabled
+- Use `type` instead of `interface` (user preference)
+
+#### 5. Authentication Pattern
+- **Server-side OAuth flow** using Passport.js (not client-side SDK)
+- **Session-based authentication** with httpOnly cookies
+- **AuthContext** provides authentication state to all components
+- **Protected routes** require authentication via `requireAuth` middleware
+- **User data isolation** - all data operations filter by userId
+- **Credentials: 'include'** - all fetch calls include session cookies
+
+#### 6. Data Isolation
+- All coffee entries have `userId` field
+- API routes filter data by authenticated user's ID
+- DELETE operations verify entry ownership
+- First user gets existing data migrated to their account
 
 ## Development Workflow
 
@@ -162,9 +193,12 @@ bun run deploy:major   # Breaking changes (1.0.0 → 2.0.0)
 - `Dockerfile` - Container build instructions
 
 ### Source Code
-- `server.js` - Express server (no TypeScript)
-- `src/App.tsx` - Root component with version display
-- `src/lib/api/client.ts` - API client
+- `server.js` - Express server with Passport.js authentication
+- `src/App.tsx` - Root component with AuthProvider wrapper
+- `src/lib/api/client.ts` - API client with credentials: 'include'
+- `src/features/coffee-tracker/contexts/AuthContext.tsx` - Authentication state management
+- `src/features/coffee-tracker/components/LoginPage.tsx` - Facebook OAuth login page
+- `src/features/coffee-tracker/components/UserProfile.tsx` - User profile header
 - `src/features/coffee-tracker/hooks/useCoffeeEntries.ts` - Main business logic
 
 ### Deployment
@@ -172,6 +206,9 @@ bun run deploy:major   # Breaking changes (1.0.0 → 2.0.0)
 - `commitlint.config.js` - Commit message validation
 
 ### Documentation
+- `.docs/FACEBOOK_AUTH_SETUP.md` - Facebook OAuth setup guide
+- `.docs/FACEBOOK_AUTH_SUMMARY.md` - Authentication implementation summary
+- `.docs/FACEBOOK_AUTH_VERIFICATION.md` - Implementation verification report
 - `.docs/DEPLOYMENT_GUIDE.md` - Deployment instructions
 - `.docs/COMMIT_CONVENTIONS.md` - Commit conventions
 - `.docs/SECURITY_AUDIT.md` - Security analysis
@@ -262,22 +299,43 @@ bun run docker:down
 
 ## Security Considerations
 
-**IMPORTANT:** This app has **NO authentication** (see `.docs/SECURITY_AUDIT.md`):
+**IMPORTANT:** This app now has **Facebook OAuth authentication** (see `.docs/FACEBOOK_AUTH_SETUP.md`):
 
+- ✅ Facebook OAuth authentication (secure third-party identity)
+- ✅ Session-based authentication (httpOnly cookies)
+- ✅ User data isolation (each user sees only their entries)
 - ✅ CORS protection (restricted to ALLOWED_ORIGINS)
 - ✅ Rate limiting (100 requests/15min per IP)
 - ✅ Input validation on all endpoints
-- ❌ **NO authentication** - anyone with URL can access
+- ✅ CSRF protection (sameSite cookies)
 - ⚠️ File-based storage (not concurrent-safe)
 
-**For personal/local use:** ✅ Acceptable with CORS restrictions
-**For cloud deployment:** ❌ Must add authentication first
+**For personal/local use:** ✅ Fully functional with authentication
+**For cloud deployment:** ✅ Ready with HTTPS and proper Facebook OAuth configuration
 
 ### Security Features Implemented
-1. **CORS Protection** - Only allows configured origins
-2. **Rate Limiting** - Prevents API abuse
-3. **Input Validation** - All API inputs validated
-4. **Secure Headers** - Proper security headers configured
+1. **Facebook OAuth** - Secure third-party authentication via Passport.js
+2. **Session Management** - Express session with httpOnly, secure, sameSite cookies
+3. **User Data Isolation** - All data operations filter by userId
+4. **CORS Protection** - Only allows configured origins
+5. **Rate Limiting** - Prevents API abuse
+6. **Input Validation** - All API inputs validated
+7. **Secure Headers** - Proper security headers configured
+8. **Ownership Verification** - DELETE operations verify entry belongs to user
+
+### Authentication Details
+- **Provider:** Facebook OAuth via Passport.js
+- **Flow:** Server-side OAuth (not client-side JavaScript SDK)
+- **Session:** Express session with MemoryStore (development), 24-hour expiration
+- **Cookie:** httpOnly, sameSite=lax, secure=false (HTTP/localhost)
+- **Permissions:** public_profile (basic user info, no app review needed)
+- **User ID Format:** `facebook:{facebookId}` (e.g., "facebook:123456789")
+
+### Data Migration
+- First user to login gets all existing entries migrated to their account
+- Server logs: `"Migrating existing data to user: facebook:..."`
+- Subsequent users start with empty lists
+- Data is fully isolated between users
 
 ## Troubleshooting
 
@@ -374,5 +432,6 @@ bun run build
 ---
 
 **Last Updated:** 2026-03-20
+**Version:** 1.5.0 (with Facebook Authentication)
 **Version:** 1.3.0
 **Maintained By:** Project Owner
