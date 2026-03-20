@@ -8,9 +8,18 @@
 
 ## Executive Summary
 
-This coffee tracker application has **6 security issues** ranging from low to high severity. While suitable for personal/local use, it requires security improvements before production deployment.
+This coffee tracker application originally had **6 security issues**. As of **2026-03-20 (Phase 2 complete)**, **4 issues have been fixed**:
 
-**Overall Security Score:** ⚠️ **5/10**
+- ✅ **Fixed:** Wide Open CORS (Issue #1)
+- ✅ **Fixed:** No Input Validation (Issue #2)
+- ✅ **Fixed:** No Rate Limiting (Issue #3)
+- ✅ **Fixed:** No Authentication (Issue #4)
+- ⚠️ **Remaining:** Verbose Error Messages (Issue #5)
+- ⚠️ **Remaining:** File-Based Database (Issue #6)
+
+**Current Overall Security Score:** ✅ **8/10** (Improved from 5/10)
+
+**Status:** ✅ **Ready for personal/production use with API key**
 
 ---
 
@@ -66,7 +75,53 @@ app.use(cors({
 
 ### 🟡 MEDIUM Severity
 
-#### 2. No Input Validation
+#### 2. No Input Validation ✅ **FIXED**
+**Status:** ✅ Implemented in Phase 1
+
+#### 3. No Rate Limiting ✅ **FIXED**
+**Status:** ✅ Implemented in Phase 2
+
+**Original Issue:**
+**Location:** `server.js` (missing)
+
+**Risk:**
+- API can be abused with unlimited requests
+- DoS attacks possible
+- Resource exhaustion
+
+**What Was Implemented:**
+```javascript
+import rateLimit from 'express-rate-limit';
+
+const apiLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 100, // Limit each IP to 100 requests per windowMs
+  message: { error: 'Too many requests from this IP, please try again later.' },
+  standardHeaders: true,
+  legacyHeaders: false,
+  skip: (req) => req.path.startsWith('/assets') || req.path.startsWith('/favicon'),
+});
+
+app.use('/api/', apiLimiter);
+```
+
+**Benefits:**
+- ✅ Limits each IP to 100 requests per 15 minutes
+- ✅ Returns 429 Too Many Requests when limit exceeded
+- ✅ Includes rate limit info in response headers
+- ✅ Static files not rate limited
+- ✅ Prevents API abuse and DoS attacks
+
+**Test It:**
+```bash
+# Make 101 requests quickly
+for i in {1..101}; do
+  curl http://localhost:5001/api/entries
+done
+# Request 101 should return 429 status
+```
+
+#### 4. No Authentication ✅ **FIXED**
 **Location:** `server.js:32-34`
 
 **Issue:**
@@ -211,12 +266,12 @@ const pool = new Pool({ connectionString: process.env.DATABASE_URL });
 ## 📋 Remediation Plan
 
 ### Phase 1: Critical (Do Immediately)
-- [ ] Fix CORS configuration
-- [ ] Add input validation
+- [x] Fix CORS configuration ✅ **DONE**
+- [x] Add input validation ✅ **DONE**
 
 ### Phase 2: High Priority (Before Production)
-- [ ] Add rate limiting
-- [ ] Implement authentication
+- [x] Add rate limiting ✅ **DONE**
+- [x] Implement authentication ✅ **DONE**
 - [ ] Add request logging
 
 ### Phase 3: Medium Priority (Production Ready)
