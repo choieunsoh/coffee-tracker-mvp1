@@ -5,6 +5,7 @@ This document provides context for AI assistants working on the Coffee Tracker M
 ## Project Overview
 
 **Coffee Tracker MVP** is a multi-user coffee tracking application with:
+
 - React 19 + TypeScript frontend
 - Express backend with file-based storage
 - Facebook OAuth authentication
@@ -14,12 +15,13 @@ This document provides context for AI assistants working on the Coffee Tracker M
 
 **Target Use:** Personal/local coffee consumption tracking with multi-user support
 **Current Status:** Functional MVP with Facebook authentication
-**Production Ready:** Yes - with HTTPS and proper Facebook OAuth configuration
+**Production Ready:** Yes - with proper Facebook OAuth configuration
 **Version:** 1.5.0
 
 ## Tech Stack
 
 ### Frontend
+
 - **React 19** - Latest React with concurrent features
 - **TypeScript** - Strict type checking enabled
 - **Vite** - Fast build tool with HMR
@@ -27,6 +29,7 @@ This document provides context for AI assistants working on the Coffee Tracker M
 - **Emotion** - CSS-in-JS (used by MUI)
 
 ### Backend
+
 - **Express** - Minimal web server
 - **Passport.js** - Authentication framework
 - **Facebook OAuth** - Third-party authentication
@@ -35,6 +38,7 @@ This document provides context for AI assistants working on the Coffee Tracker M
 - **No database server** - Simple file I/O
 
 ### DevOps
+
 - **Docker** - Multi-stage builds with Alpine
 - **Docker Compose** - Single-command deployment
 - **Git** - Version control with conventional commits
@@ -88,27 +92,32 @@ src/
 ### Key Patterns
 
 #### 1. Feature-Based Organization
+
 - Components organized by feature, not type
 - Each feature has its own `components/`, `hooks/`, `types/`
 - Makes code easier to find and maintain
 
 #### 2. Custom Hooks for Business Logic
+
 - `useCoffeeEntries` encapsulates all coffee entry logic
 - Provides clean API for components
 - Easy to test and reuse
 
 #### 3. Singleton API Client
+
 - `apiClient` is a singleton instance
 - Shared across all components
 - Consistent API interface
 
 #### 4. Type Safety
+
 - All API responses typed with `CoffeeEntry` interface
 - Zod validation in types
 - TypeScript strict mode enabled
 - Use `type` instead of `interface` (user preference)
 
 #### 5. Authentication Pattern
+
 - **Server-side OAuth flow** using Passport.js (not client-side SDK)
 - **Session-based authentication** with httpOnly cookies
 - **AuthContext** provides authentication state to all components
@@ -117,6 +126,7 @@ src/
 - **Credentials: 'include'** - all fetch calls include session cookies
 
 #### 6. Data Isolation
+
 - All coffee entries have `userId` field
 - API routes filter data by authenticated user's ID
 - DELETE operations verify entry ownership
@@ -170,6 +180,7 @@ See [`.docs/COMMIT_CONVENTIONS.md`](.docs/COMMIT_CONVENTIONS.md) for details.
 ### Deployment
 
 **Quick deploy:**
+
 ```bash
 bun run deploy:patch   # Bug fixes (1.0.0 → 1.0.1)
 bun run deploy:minor   # New features (1.0.0 → 1.1.0)
@@ -177,6 +188,7 @@ bun run deploy:major   # Breaking changes (1.0.0 → 2.0.0)
 ```
 
 **What happens:**
+
 1. Version bumped in `package.json`
 2. Commit created with conventional message
 3. Git tag created (e.g., `v1.3.0`)
@@ -186,6 +198,7 @@ bun run deploy:major   # Breaking changes (1.0.0 → 2.0.0)
 ## Important Files
 
 ### Configuration
+
 - `package.json` - Dependencies, scripts, version
 - `vite.config.ts` - Vite configuration, version injection
 - `tsconfig.json` - TypeScript configuration
@@ -193,6 +206,7 @@ bun run deploy:major   # Breaking changes (1.0.0 → 2.0.0)
 - `Dockerfile` - Container build instructions
 
 ### Source Code
+
 - `server.js` - Express server with Passport.js authentication
 - `src/App.tsx` - Root component with AuthProvider wrapper
 - `src/lib/api/client.ts` - API client with credentials: 'include'
@@ -202,13 +216,16 @@ bun run deploy:major   # Breaking changes (1.0.0 → 2.0.0)
 - `src/features/coffee-tracker/hooks/useCoffeeEntries.ts` - Main business logic
 
 ### Deployment
+
 - `deploy.sh` - Automated deployment script
 - `commitlint.config.js` - Commit message validation
 
 ### Documentation
+
 - `.docs/FACEBOOK_AUTH_SETUP.md` - Facebook OAuth setup guide
 - `.docs/FACEBOOK_AUTH_SUMMARY.md` - Authentication implementation summary
 - `.docs/FACEBOOK_AUTH_VERIFICATION.md` - Implementation verification report
+- `.docs/CONFIGURATION_GUIDE.md` - Complete configuration documentation
 - `.docs/DEPLOYMENT_GUIDE.md` - Deployment instructions
 - `.docs/COMMIT_CONVENTIONS.md` - Commit conventions
 - `.docs/SECURITY_AUDIT.md` - Security analysis
@@ -217,24 +234,28 @@ bun run deploy:major   # Breaking changes (1.0.0 → 2.0.0)
 ## Code Style
 
 ### TypeScript
+
 - Strict mode enabled
 - No implicit any
 - Explicit return types on exported functions
 - Interface over type for objects (usually)
 
 ### React
+
 - Functional components with hooks
 - No class components
 - Props destructured
 - Early returns for conditional rendering
 
 ### CSS/Styling
+
 - MUI component system
 - `sx` prop for one-off styles
 - `theme.ts` for global styles
 - Dark mode by default
 
 ### Naming Conventions
+
 - Components: `PascalCase` (e.g., `CoffeeTracker`)
 - Hooks: `use` prefix (e.g., `useCoffeeEntries`)
 - Files: `PascalCase.tsx` for components, `kebab-case.ts` for utilities
@@ -261,6 +282,7 @@ bun run deploy:major   # Breaking changes (1.0.0 → 2.0.0)
 ### Updating Version Display
 
 Version is auto-injected during build:
+
 - Edit `package.json` version
 - Run `bun run build`
 - Version appears in footer
@@ -308,14 +330,16 @@ bun run docker:down
 - ✅ Rate limiting (100 requests/15min per IP)
 - ✅ Input validation on all endpoints
 - ✅ CSRF protection (sameSite cookies)
+- ✅ Configurable session duration (SESSION_EXPIRE_DAYS)
 - ⚠️ File-based storage (not concurrent-safe)
 
 **For personal/local use:** ✅ Fully functional with authentication
-**For cloud deployment:** ✅ Ready with HTTPS and proper Facebook OAuth configuration
+**For cloud deployment:** ✅ Ready with proper Facebook OAuth configuration
 
 ### Security Features Implemented
+
 1. **Facebook OAuth** - Secure third-party authentication via Passport.js
-2. **Session Management** - Express session with httpOnly, secure, sameSite cookies
+2. **Session Management** - Express session with configurable duration (default 7 days), httpOnly cookies
 3. **User Data Isolation** - All data operations filter by userId
 4. **CORS Protection** - Only allows configured origins
 5. **Rate Limiting** - Prevents API abuse
@@ -324,14 +348,16 @@ bun run docker:down
 8. **Ownership Verification** - DELETE operations verify entry belongs to user
 
 ### Authentication Details
+
 - **Provider:** Facebook OAuth via Passport.js
 - **Flow:** Server-side OAuth (not client-side JavaScript SDK)
-- **Session:** Express session with MemoryStore (development), 24-hour expiration
+- **Session:** Express session with MemoryStore (development), configurable expiration via SESSION_EXPIRE_DAYS
 - **Cookie:** httpOnly, sameSite=lax, secure=false (HTTP/localhost)
 - **Permissions:** public_profile (basic user info, no app review needed)
 - **User ID Format:** `facebook:{facebookId}` (e.g., "facebook:123456789")
 
 ### Data Migration
+
 - First user to login gets all existing entries migrated to their account
 - Server logs: `"Migrating existing data to user: facebook:..."`
 - Subsequent users start with empty lists
@@ -340,6 +366,7 @@ bun run docker:down
 ## Troubleshooting
 
 ### Port Already in Use
+
 ```bash
 # Kill process on port 5001
 npx kill-port 5001  # macOS/Linux
@@ -348,6 +375,7 @@ netstat -ano | findstr :5001  # Windows
 ```
 
 ### Docker Issues
+
 ```bash
 # Clean everything
 bun run docker:clean
@@ -357,6 +385,7 @@ bun run docker:rebuild
 ```
 
 ### Build Errors
+
 ```bash
 # Clear cache
 rm -rf node_modules dist
@@ -365,6 +394,7 @@ bun run build
 ```
 
 ### Version Not Updating
+
 - Version injected at build time
 - Must run `bun run build` after changing version
 - Check `vite.config.ts` for injection logic
@@ -372,6 +402,7 @@ bun run build
 ## Preferences
 
 ### User Preferences (from memory)
+
 - ❌ **No Co-Authored-By** in git commits
 - ✅ Use conventional commit messages
 - ✅ Prefer bun over npm
@@ -379,6 +410,7 @@ bun run build
 - ✅ Document changes
 
 ### Development Philosophy
+
 - **Simplicity over complexity**
 - **Working code over perfect code**
 - **Documentation as you go**
@@ -387,16 +419,52 @@ bun run build
 ## Future Improvements
 
 ### High Priority
-- [ ] Add authentication (required for cloud deployment)
+
+- [x] Add authentication (✅ Facebook OAuth implemented)
 - [ ] Migrate from file-based storage to SQLite/PostgreSQL
 - [ ] Add automated tests
 
 ### Medium Priority
+
 - [ ] Add automated tests
-- [ ] Implement authentication
 - [ ] Add error boundaries
+- [ ] Implement user profile management
 
 ### Low Priority
+
+## Preferences
+
+### User Preferences (from memory)
+
+- ❌ **No Co-Authored-By** in git commits
+- ✅ Use conventional commit messages
+- ✅ Prefer bun over npm
+- ✅ Keep deployment simple
+- ✅ Document changes
+
+### Development Philosophy
+
+- **Simplicity over complexity**
+- **Working code over perfect code**
+- **Documentation as you go**
+- **Automate repetitive tasks**
+
+## Future Improvements
+
+### High Priority
+
+- [x] Add authentication (✅ Facebook OAuth implemented)
+- [ ] Migrate from file-based storage to SQLite/PostgreSQL
+- [ ] Add automated tests
+
+### Medium Priority
+
+- [ ] Add automated tests
+- [ ] Add error boundaries
+- [ ] Implement user profile management
+
+### Low Priority
+
 - [ ] Migrate to real database
 - [ ] Add user settings
 
@@ -431,7 +499,6 @@ bun run build
 
 ---
 
-**Last Updated:** 2026-03-20
+**Last Updated:** 2026-03-21
 **Version:** 1.5.0 (with Facebook Authentication)
-**Version:** 1.3.0
 **Maintained By:** Project Owner

@@ -19,6 +19,7 @@ A simple coffee tracking application with Facebook authentication, built with Re
 ## Tech Stack
 
 ### Frontend
+
 - **React 19** - UI framework
 - **TypeScript** - Type safety
 - **Vite** - Build tool
@@ -26,6 +27,7 @@ A simple coffee tracking application with Facebook authentication, built with Re
 - **Emotion** - CSS-in-JS styling
 
 ### Backend
+
 - **Express** - Web server
 - **Passport.js** - Authentication framework
 - **Facebook OAuth** - Third-party authentication
@@ -34,6 +36,7 @@ A simple coffee tracking application with Facebook authentication, built with Re
 - **File-based Storage** - JSON database
 
 ### DevOps
+
 - **Docker** - Containerization
 - **Docker Compose** - Multi-container orchestration
 - **Git** - Version control
@@ -86,11 +89,11 @@ bun run docker:down
 
 ## Ports Configuration
 
-| Environment | Port | URL | Description |
-|-------------|------|-----|-------------|
-| **Development** | 3001 | http://localhost:3001 | Vite dev server (frontend only) |
-| **Production** | 5001 | http://localhost:5001 | Express server (full stack) |
-| **Docker** | 5001 | http://localhost:5001 | Containerized application |
+| Environment     | Port | URL                     | Description                     |
+| --------------- | ---- | ----------------------- | ------------------------------- |
+| **Development** | 3001 | <http://localhost:3001> | Vite dev server (frontend only) |
+| **Production**  | 5001 | <http://localhost:5001> | Express server (full stack)     |
+| **Docker**      | 5001 | <http://localhost:5001> | Containerized application       |
 
 ### Why Port 5001?
 
@@ -131,6 +134,7 @@ bun run deploy:major
 ### Version Display
 
 The app displays version and build time in the footer:
+
 ```
 v1.5.0 • 20/03/2026 14:30:45
 ```
@@ -212,6 +216,7 @@ This application uses a **simple JSON file** for data storage:
 ### For Production Use
 
 Consider upgrading to:
+
 - **SQLite** - Single-file SQL database (better performance)
 - **PostgreSQL** - Full production database
 - **MySQL** - Alternative SQL database
@@ -225,12 +230,15 @@ See [`.docs/SECURITY_AUDIT.md`](.docs/SECURITY_AUDIT.md) for database recommenda
 ### Authentication Endpoints
 
 #### GET /api/auth/facebook
+
 Initiates Facebook OAuth login flow.
 
 #### GET /api/auth/facebook/callback
+
 OAuth callback endpoint (handled by Passport.js).
 
 #### GET /api/auth/me
+
 Returns current authenticated user info.
 
 ```bash
@@ -238,6 +246,7 @@ curl http://localhost:5001/api/auth/me --cookie-jar cookies.txt --cookie cookies
 ```
 
 #### POST /api/auth/logout
+
 Logs out the current user and destroys session.
 
 ```bash
@@ -247,6 +256,7 @@ curl -X POST http://localhost:5001/api/auth/logout --cookie-jar cookies.txt --co
 ### Data Endpoints (Require Authentication)
 
 #### GET /api/entries
+
 Get coffee entries for today or since a specific date.
 
 ```bash
@@ -258,6 +268,7 @@ curl "http://localhost:5001/api/entries?startDate=1679089200000" --cookie-jar co
 ```
 
 #### POST /api/entries
+
 Add a new coffee entry (requires authentication).
 
 ```bash
@@ -268,6 +279,7 @@ curl -X POST http://localhost:5001/api/entries \
 ```
 
 #### DELETE /api/entries/:id
+
 Delete a coffee entry (requires authentication, ownership verified).
 
 ```bash
@@ -310,8 +322,11 @@ Create a `.env` file in the project root:
 FACEBOOK_APP_ID=your_facebook_app_id_here
 FACEBOOK_APP_SECRET=your_facebook_app_secret_here
 
-# Session Secret (generate with: openssl rand -base64 32)
+# Session Secret (generate with: bun run generate:session-secret)
 SESSION_SECRET=your_random_session_secret_here
+
+# Session expiration time in days (default: 7)
+SESSION_EXPIRE_DAYS=7
 
 # Allowed CORS origins (comma-separated)
 # For local development:
@@ -325,12 +340,15 @@ NODE_ENV=production
 ```
 
 **Required Variables:**
-- `FACEBOOK_APP_ID` - Facebook App ID from https://developers.facebook.com/apps/
+
+- `FACEBOOK_APP_ID` - Facebook App ID from <https://developers.facebook.com/apps/>
 - `FACEBOOK_APP_SECRET` - Facebook App Secret
 - `SESSION_SECRET` - Random string for session encryption
 
 **Optional Variables:**
-- `ALLOWED_ORIGINS` - Comma-separated list of allowed origins (default: http://localhost:5001)
+
+- `SESSION_EXPIRE_DAYS` - Session duration in days (default: 7)
+- `ALLOWED_ORIGINS` - Comma-separated list of allowed origins (default: <http://localhost:5001>)
 - `PORT` - Server port (default: 5001)
 - `NODE_ENV` - Environment (development/production)
 
@@ -347,11 +365,13 @@ Coffee entries are stored in `./data/coffee-data.json` on the server.
 This project follows [Conventional Commits](https://www.conventionalcommits.org/) specification.
 
 **Format:**
+
 ```
 <type>[optional scope]: <description>
 ```
 
 **Types:**
+
 - `feat` - New feature
 - `fix` - Bug fix
 - `docs` - Documentation changes
@@ -364,6 +384,7 @@ This project follows [Conventional Commits](https://www.conventionalcommits.org/
 - `chore` - Other changes
 
 **Examples:**
+
 ```bash
 git commit -m "feat: add coffee entry deletion"
 git commit -m "fix: prevent duplicate entries"
@@ -377,6 +398,7 @@ See [`.docs/COMMIT_CONVENTIONS.md`](.docs/COMMIT_CONVENTIONS.md) for details.
 - [Facebook Auth Setup](.docs/FACEBOOK_AUTH_SETUP.md) - Complete Facebook OAuth setup guide
 - [Facebook Auth Summary](.docs/FACEBOOK_AUTH_SUMMARY.md) - Implementation overview
 - [Facebook Auth Verification](.docs/FACEBOOK_AUTH_VERIFICATION.md) - Implementation verification report
+- [Configuration Guide](.docs/CONFIGURATION_GUIDE.md) - Complete configuration documentation
 - [Deployment Guide](.docs/DEPLOYMENT_GUIDE.md) - Complete deployment instructions
 - [Commit Conventions](.docs/COMMIT_CONVENTIONS.md) - Conventional commits guide
 - [Security Audit](.docs/SECURITY_AUDIT.md) - Security analysis and recommendations
@@ -388,6 +410,7 @@ See [`.docs/COMMIT_CONVENTIONS.md`](.docs/COMMIT_CONVENTIONS.md) for details.
 ✅ **This app now includes Facebook OAuth authentication for multi-user support.**
 
 ### Current Security Features
+
 - ✅ **Facebook OAuth** - Secure third-party authentication
 - ✅ **Session Management** - Secure httpOnly cookies
 - ✅ **User Data Isolation** - Each user can only access their own entries
@@ -398,6 +421,7 @@ See [`.docs/COMMIT_CONVENTIONS.md`](.docs/COMMIT_CONVENTIONS.md) for details.
 - ✅ **CSRF Protection** - SameSite cookie protection
 
 ### Authentication Flow
+
 1. User clicks "Continue with Facebook"
 2. Redirected to Facebook OAuth page
 3. User approves app
@@ -407,6 +431,7 @@ See [`.docs/COMMIT_CONVENTIONS.md`](.docs/COMMIT_CONVENTIONS.md) for details.
 7. Session expires after 24 hours
 
 ### Data Privacy
+
 - Each user's coffee entries are private
 - Users can only see their own entries
 - Ownership verified on DELETE operations
@@ -415,6 +440,7 @@ See [`.docs/COMMIT_CONVENTIONS.md`](.docs/COMMIT_CONVENTIONS.md) for details.
 ### Before Deploying to Production
 
 **Required for Production:**
+
 - ✅ HTTPS/TLS (required for Facebook OAuth in production)
 - ✅ Update Facebook OAuth settings with production URLs
 - ✅ Use production Facebook App (separate from development)
@@ -422,18 +448,22 @@ See [`.docs/COMMIT_CONVENTIONS.md`](.docs/COMMIT_CONVENTIONS.md) for details.
 - ✅ Configure ALLOWED_ORIGINS with production domain(s)
 
 **Recommended for Production:**
+
 - Use Redis/MongoDB for session storage (instead of MemoryStore)
 - Enable secure cookies (set `cookie.secure: true`)
 - Add monitoring for failed authentication attempts
 - Set up database backup strategy
 
 ### Development vs Production
+
 **Development (localhost):**
+
 - HTTP is acceptable
 - `cookie.secure: false` (required for HTTP)
 - Use test Facebook App
 
 **Production:**
+
 - MUST use HTTPS
 - `cookie.secure: true`
 - Use production Facebook App
@@ -455,6 +485,34 @@ MIT License - see [LICENSE](LICENSE) file for details
 ## Support
 
 For issues, questions, or suggestions:
+HTTP)
+
+- Use test Facebook App
+
+**Production:**
+
+- MUST use HTTPS
+- `cookie.secure: true`
+- Use production Facebook App
+- Update OAuth redirect URIs
+
+See [`.docs/FACEBOOK_AUTH_SETUP.md`](.docs/FACEBOOK_AUTH_SETUP.md) for production deployment guide.
+
+## Contributing
+
+1. Follow the [Code of Conduct](CODE_OF_CONDUCT.md)
+2. Follow [Conventional Commits](.docs/COMMIT_CONVENTIONS.md)
+3. Write meaningful commit messages
+4. Test your changes
+
+## License
+
+MIT License - see [LICENSE](LICENSE) file for details
+
+## Support
+
+For issues, questions, or suggestions:
+
 1. Check the [Security Audit](.docs/SECURITY_AUDIT.md)
 2. Review the [Deployment Guide](.docs/DEPLOYMENT_GUIDE.md)
 3. Open an issue on GitHub
