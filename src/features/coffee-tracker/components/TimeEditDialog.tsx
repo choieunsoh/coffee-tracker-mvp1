@@ -11,6 +11,7 @@ import {
   Box,
   Typography,
 } from '@mui/material'
+import { formatTime } from '@/shared/utils/date'
 
 type TimeOption = {
   label: string
@@ -46,19 +47,13 @@ export function TimeEditDialog({
     onClose()
   }
 
-  const formatCurrentTime = (timestamp: number | undefined) => {
-    if (!timestamp) return ''
-    const date = new Date(timestamp)
-    return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-  }
-
   return (
     <Dialog open={open} onClose={onClose} maxWidth="xs" fullWidth>
       <DialogTitle>Edit Entry Time</DialogTitle>
       <DialogContent>
         <Box sx={{ mb: 2 }}>
           <Typography variant="body2" color="text.secondary">
-            Current time: {formatCurrentTime(currentTimestamp)}
+            Current time: {currentTimestamp ? formatTime(currentTimestamp) : ''}
           </Typography>
         </Box>
         <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
