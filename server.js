@@ -44,7 +44,7 @@ app.use(
       }
     },
     credentials: true,
-    methods: ['GET', 'POST', 'DELETE'],
+    methods: ['GET', 'POST', 'DELETE', 'PATCH'],
     allowedHeaders: ['Content-Type', 'Authorization', 'X-API-Key'],
   }),
 );
@@ -318,6 +318,53 @@ app.delete('/api/entries/:id', requireAuth, (req, res) => {
     res.json({ success: true });
   } catch (error) {
     console.error('Failed to delete entry:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// PATCH endpoint to update entry timestamp
+app.patch('/api/entries/:id', requireAuth, (req, res) => {
+  try {
+    const { id } = req.params;
+    const { createdAt } = req.body;
+    const userId = getUserId(req);
+
+    if (!userId) {
+      return res.status(401).json({ error: 'Invalid user' });
+    }
+
+    // Validate id parameter
+    if (!id || typeof id !== 'string') {
+      return res.status(400).json({ error: 'Invalid id: must be a string' });
+    }
+    if (id.trim().length === 0) {
+      return res.status(400).json({ error: 'Invalid id: cannot be empty' });
+    }
+
+    // Validate createdAt parameter
+    if (createdAt === undefined || typeof createdAt !== 'number') {
+      return res.status(400).json({ error: 'Invalid createdAt: must be a number' });
+    }
+
+    // Check if entry exists and belongs to user
+    const data = readDatabase();
+    const entryIndex = data.findIndex((entry) => entry.id === id);
+
+    if (entryIndex === -1) {
+      return res.status(404).json({ error: 'Entry not found' });
+    }
+
+    if (data[entryIndex].userId !== userId) {
+      return res.status(403).json({ error: 'Forbidden: Entry belongs to another user' });
+    }
+
+    // Update the timestamp
+    data[entryIndex].createdAt = createdAt;
+    writeDatabase(data);
+
+    res.json({ success: true, entry: data[entryIndex] });
+  } catch (error) {
+    console.error('Failed to update entry:', error);
     res.status(500).json({ error: 'Internal server error' });
   }
 });
