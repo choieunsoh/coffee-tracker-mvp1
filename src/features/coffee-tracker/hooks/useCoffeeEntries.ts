@@ -98,10 +98,50 @@ export function useCoffeeEntries() {
     }
   }, [isAdding, loadEntries])
 
+  const updateEntryTimestamp = useCallback(async (id: string, createdAt: number) => {
+    try {
+      console.log('[updateEntryTimestamp] Updating entry:', id)
+      const updatedEntry = await apiClient.updateEntry(id, createdAt)
+
+      // Update local state with new timestamp
+      setTodayEntries((prevEntries) =>
+        prevEntries.map((entry) =>
+          entry.id === id ? updatedEntry : entry
+        )
+      )
+      setError(null)
+    } catch (err) {
+      console.error('Failed to update entry timestamp:', err)
+      setError('Failed to update entry timestamp')
+      // Reload to get correct state
+      loadEntries()
+    }
+  }, [loadEntries])
+
+  const deleteEntry = useCallback(async (id: string) => {
+    try {
+      console.log('[deleteEntry] Deleting entry:', id)
+      await apiClient.deleteEntry(id)
+
+      // Update local state by removing the deleted entry
+      setTodayEntries((prevEntries) =>
+        prevEntries.filter((entry) => entry.id !== id)
+      )
+      setError(null)
+    } catch (err) {
+      console.error('Failed to delete entry:', err)
+      setError('Failed to delete entry')
+      // Reload to get correct state
+      loadEntries()
+    }
+  }, [loadEntries])
+
   return {
     todayEntries,
     count: todayEntries.length,
     addEntry,
+    updateEntryTimestamp,
+    deleteEntry,
     isLoading,
     isAdding,
     error,

@@ -38,6 +38,18 @@ export class CoffeeApiClient {
     })
     if (!response.ok) throw new Error('Failed to delete entry')
   }
+
+  async updateEntry(id: string, createdAt: number): Promise<CoffeeEntry> {
+    const response = await fetch(`${API_BASE}/api/entries/${id}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ createdAt }),
+      credentials: 'include',
+    })
+    if (!response.ok) throw new Error('Failed to update entry')
+    const data = await response.json()
+    return data.entry
+  }
 }
 
 export const apiClient = new CoffeeApiClient()
