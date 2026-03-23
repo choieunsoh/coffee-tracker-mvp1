@@ -24,8 +24,9 @@ WORKDIR /app
 COPY package*.json ./
 RUN bun install --legacy-peer-deps --production
 
-# Copy built artifacts and server from builder
+# Copy built artifacts, server, and lib from builder
 COPY --from=builder /app/dist ./dist
+COPY --from=builder /app/lib ./lib
 COPY server.js ./
 
 # Expose ports
