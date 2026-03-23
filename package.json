@@ -30,24 +30,20 @@
     "generate:session-secret": "openssl rand -hex 32"
   },
   "dependencies": {
-    "@emotion/react": "^11.14.0",
-    "@emotion/styled": "^11.14.1",
-    "@mui/icons-material": "^7.3.9",
-    "@mui/material": "^7.3.9",
-    "cookie-parser": "^1.4.7",
     "cors": "^2.8.6",
     "express": "^5.2.1",
     "express-rate-limit": "^8.3.1",
     "express-session": "^1.19.0",
     "passport": "^0.7.0",
     "passport-facebook": "^3.0.0",
-    "react": "^19.2.4",
-    "react-dom": "^19.2.4",
-    "session-file-store": "^1.5.0",
-    "zod": "^4.3.6"
+    "session-file-store": "^1.5.0"
   },
   "devDependencies": {
+    "@emotion/react": "^11.14.0",
+    "@emotion/styled": "^11.14.1",
     "@eslint/js": "^10.0.1",
+    "@mui/icons-material": "^7.3.9",
+    "@mui/material": "^7.3.9",
     "@types/cookie-parser": "^1.4.10",
     "@types/express-session": "^1.18.2",
     "@types/passport": "^1.0.17",
@@ -63,8 +59,11 @@
     "eslint-plugin-react": "^7.37.5",
     "eslint-plugin-react-hooks": "^7.0.1",
     "prettier": "^3.8.1",
+    "react": "^19.2.4",
+    "react-dom": "^19.2.4",
     "typescript": "^5.9.3",
-    "vite": "^8.0.1"
+    "vite": "^8.0.1",
+    "zod": "^4.3.6"
   },
   "engines": {
     "bun": ">=1.3.0",
