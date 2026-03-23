@@ -2,6 +2,7 @@ import cors from 'cors';
 import express from 'express';
 import rateLimit from 'express-rate-limit';
 import session from 'express-session';
+import FileStore from 'connect-session-file';
 import fs from 'fs';
 import passport from 'passport';
 import { Strategy as FacebookStrategy } from 'passport-facebook';
@@ -74,12 +75,22 @@ app.use('/api/', apiLimiter);
 // Session configuration (must be before Passport)
 const sessionExpireDays = parseInt(process.env.SESSION_EXPIRE_DAYS || '7', 10);
 
+// Ensure sessions directory exists
+const SESSION_DIR = path.join(DATA_DIR, 'sessions');
+if (!fs.existsSync(SESSION_DIR)) {
+  fs.mkdirSync(SESSION_DIR, { recursive: true });
+}
+
 app.use(
   session({
     secret: process.env.SESSION_SECRET || 'coffee-tracker-secret-change-in-production',
     resave: false,
     saveUninitialized: true, // Change to true to ensure session is saved
     rolling: false, // Don't reset session maxAge on every request
+    store: new FileStore({
+      path: SESSION_DIR, // Store sessions in data/sessions directory
+      encrypt: false, // No encryption needed for this use case
+    }),
     cookie: {
       secure: false, // MUST be false for localhost/HTTP
       sameSite: 'lax', // CSRF protection

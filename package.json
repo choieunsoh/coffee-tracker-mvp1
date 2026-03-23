@@ -34,6 +34,7 @@
     "@emotion/styled": "^11.13.5",
     "@mui/icons-material": "^7.3.9",
     "@mui/material": "^6.4.5",
+    "connect-session-file": "^1.0.4",
     "cookie-parser": "^1.4.7",
     "cors": "^2.8.5",
     "express": "^4.21.2",
