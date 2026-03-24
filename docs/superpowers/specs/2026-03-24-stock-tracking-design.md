@@ -1,12 +1,18 @@
 # Stock Tracking Feature Design
 
 **Date:** 2026-03-24
-**Status:** Approved
+**Status:** Draft (In Review)
 **Approach:** Separate Stock Data File with Backend Endpoints
 
 ## Overview
 
 Add coffee capsule stock tracking to the Coffee Tracker MVP. Users can add capsule inventory via a FAB button, and stock automatically decreases when logging coffee consumption. When stock reaches zero, adding coffee is blocked until more capsules are added.
+
+**Implementation Scope:**
+- **Phase 1 (This spec):** Single coffee type using `DEFAULT_COFFEE_TYPE` (Starbucks/House Blend)
+- **Phase 2 (Future):** Multi-type support with coffee type selection/management
+
+This spec focuses on Phase 1, with data structures designed to be extensible for Phase 2.
 
 ## Requirements
 
@@ -93,6 +99,42 @@ export type CoffeeStock = z.infer<typeof CoffeeStockSchema>
 - Response: `{ success: true, remaining: number }`
 - Error: `{ error: "Insufficient stock" }` if quantity < 1
 
+### API Client Methods
+
+**File:** `src/lib/api/client.ts`
+
+Add these methods to the existing `CoffeeApiClient` class:
+
+```typescript
+// In src/lib/api/client.ts
+export class CoffeeApiClient {
+  // ... existing methods (getTodayEntries, addEntry, updateEntry, deleteEntry) ...
+
+  async getStock(): Promise<CoffeeStock[]> {
+    const response = await this.fetch('/api/stock', { method: 'GET' })
+    return handleResponse(response)
+  }
+
+  async addStock(brand: string, beanName: string, quantity: number): Promise<CoffeeStock> {
+    const response = await this.fetch('/api/stock', {
+      method: 'POST',
+      body: JSON.stringify({ brand, beanName, quantity }),
+    })
+    return handleResponse(response)
+  }
+
+  async consumeStock(brand: string, beanName: string): Promise<{success: boolean, remaining: number}> {
+    const response = await this.fetch('/api/stock/consume', {
+      method: 'POST',
+      body: JSON.stringify({ brand, beanName }),
+    })
+    return handleResponse(response)
+  }
+}
+```
+
+**Implementation Note:** For Phase 1, `brand` and `beanName` parameters are derived from `DEFAULT_COFFEE_TYPE` in `src/config/app.config.ts`.
+
 ## Frontend Components
 
 ### Component Structure
@@ -128,7 +170,8 @@ type StockCardProps = {
 - Large quantity display
 - Color coding: green (10+), yellow (3-9), red (0-2)
 - "Low stock!" warning when quantity ≤ 2
-- Shows coffee type name
+- Shows coffee type name (e.g., "Starbucks House Blend")
+- Empty state when no stock exists: "No capsule stock. Add capsules to get started."
 
 #### AddStockDialog.tsx
 
@@ -147,6 +190,9 @@ type AddStockDialogProps = {
 - Number input (min: 1, max: 1000)
 - "Add" and "Cancel" buttons
 - Validation before submit
+- For Phase 1: Uses `DEFAULT_COFFEE_TYPE` internally (brand/beanName from config)
+
+**Implementation Note:** The dialog only accepts quantity because the coffee type is fixed to `DEFAULT_COFFEE_TYPE`. For Phase 2, this will be updated to include coffee type selection.
 
 #### AddStockFAB.tsx
 
@@ -168,10 +214,12 @@ type UseStockReturn = {
   isAdding: boolean
   error: string | null
   addStock: (quantity: number) => Promise<void>
-  consumeStock: (brand: string, beanName: string) => Promise<boolean>
+  consumeStock: () => Promise<boolean>  // Phase 1: no params needed
   refreshStock: () => Promise<void>
 }
 ```
+
+**Implementation Note:** For Phase 1, `consumeStock()` takes no parameters and uses `DEFAULT_COFFEE_TYPE` internally. For Phase 2, this will accept `(brand: string, beanName: string)` parameters.
 
 ### Layout in CoffeeTracker.tsx
 
@@ -199,9 +247,19 @@ type UseStockReturn = {
 
 1. User clicks CoffeeCountButton
 2. `useCoffeeEntries.addEntry()` calls `useStock.consumeStock()`
-3. Backend: POST `/api/stock/consume`
+   - For Phase 1: Uses `DEFAULT_COFFEE_TYPE` (Starbucks/House Blend)
+3. Backend: POST `/api/stock/consume` with brand/beanName
 4. If success: POST `/api/entries` creates entry
 5. If fail (stock < 1): Entry creation blocked, error shown
+
+### Stock Initialization (First-Time User)
+
+**Scenario:** New user logs in, no stock entry exists
+
+1. StockCard shows empty state: "No capsule stock. Add capsules to get started."
+2. CoffeeCountButton is disabled with tooltip: "Add stock before logging coffee"
+3. User clicks FAB → AddStockDialog → Enters quantity → Stock initialized
+4. After stock added, CoffeeCountButton becomes enabled
 
 ### Adding Stock
 
@@ -230,13 +288,15 @@ const ERROR_MESSAGES = {
 
 | Scenario | Behavior |
 |----------|----------|
-| Stock = 0 | CoffeeCountButton disabled with tooltip |
+| Stock = 0 | CoffeeCountButton disabled with tooltip "No capsules remaining. Add more stock to continue." |
 | Stock = 1-2 | Yellow color + "Low stock!" warning |
-| Add stock with existing | Updates existing entry (adds quantity) |
-| Consume with no stock entry | Error: "No stock found" |
-| Delete entry | Does NOT restore stock |
-| API failure | User-friendly error message |
-| Invalid input | Dialog validation rejects |
+| No stock entry (new user) | StockCard shows empty state, CoffeeCountButton disabled with "Add stock before logging coffee" |
+| Add stock with existing | Updates existing entry (adds quantity) rather than creating duplicate |
+| Consume with no stock entry | Error: "No stock found for this coffee type. Please add stock first." |
+| Delete entry | Does NOT restore stock (capsule already consumed) |
+| API failure | User-friendly error message shown in StockCard |
+| Invalid input | Dialog validation rejects (negative, empty, >1000) |
+| First-time user | Empty state message guides them to add stock via FAB |
 
 ## Testing Strategy
 
@@ -271,17 +331,29 @@ const ERROR_MESSAGES = {
 ### Key Design Decisions
 
 1. **Separate stock file** - Clean separation of concerns, easier to manage
-2. **Dedicated consume endpoint** - Clear responsibility boundaries
+2. **Dedicated consume endpoint** - Clear responsibility boundaries, atomic operation
 3. **Hard block at zero** - Enforces inventory discipline
-4. **No restore on delete** - Accurate real-world modeling
-5. **Per-coffee-type tracking** - Extensible for multiple types
+4. **No restore on delete** - Accurate real-world modeling (capsule consumed is gone)
+5. **Phase 1: Single coffee type** - Uses `DEFAULT_COFFEE_TYPE` for simplicity
+6. **Extensible data model** - Designed for Phase 2 multi-type support (stock tracked per brand/beanName)
+
+### Phase 1 vs Phase 2
+
+| Aspect | Phase 1 (This spec) | Phase 2 (Future) |
+|--------|---------------------|------------------|
+| Coffee types | Single (DEFAULT_COFFEE_TYPE) | Multiple, user-managed |
+| Stock dialog | Quantity input only | Quantity + coffee type selector |
+| consumeStock() | No params (uses default) | Accepts brand/beanName params |
+| Stock display | Single StockCard | StockCard with type tabs or list |
+| Type management | None (fixed to config) | Add/edit/delete coffee types |
 
 ### Code Style
 
-- Use `type` not `interface`
-- Follow existing patterns from `useCoffeeEntries`
+- **Use `type` not `interface`** - All TypeScript type definitions use the `type` keyword (project preference)
+- Follow existing patterns from `useCoffeeEntries` hook
 - Feature-based component organization
 - Zod validation for all types
+- Atomic operations in backend (read-modify-write in one sequence)
 
 ## Future Enhancements
 
