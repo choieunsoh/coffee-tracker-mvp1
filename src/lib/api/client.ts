@@ -1,3 +1,5 @@
+import type { CoffeeStock } from '@/features/coffee-tracker/types/CoffeeEntry.types'
+
 const API_BASE = window.location.origin
 
 export interface CoffeeEntry {
@@ -49,6 +51,50 @@ export class CoffeeApiClient {
     if (!response.ok) throw new Error('Failed to update entry')
     const data = await response.json()
     return data.entry
+  }
+
+  async getStock(): Promise<CoffeeStock[]> {
+    const response = await fetch(`${API_BASE}/api/stock`, {
+      credentials: 'include',
+    })
+
+    if (!response.ok) {
+      throw new Error(`Failed to fetch stock: ${response.statusText}`)
+    }
+
+    return response.json() as Promise<CoffeeStock[]>
+  }
+
+  async addStock(brand: string, beanName: string, quantity: number): Promise<CoffeeStock> {
+    const response = await fetch(`${API_BASE}/api/stock`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ brand, beanName, quantity }),
+      credentials: 'include',
+    })
+
+    if (!response.ok) {
+      const error = await response.json()
+      throw new Error(error.error || 'Failed to add stock')
+    }
+
+    return response.json() as Promise<CoffeeStock>
+  }
+
+  async consumeStock(brand: string, beanName: string): Promise<{ success: boolean; remaining: number }> {
+    const response = await fetch(`${API_BASE}/api/stock/consume`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ brand, beanName }),
+      credentials: 'include',
+    })
+
+    if (!response.ok) {
+      const error = await response.json()
+      throw new Error(error.error || 'Failed to consume stock')
+    }
+
+    return response.json() as Promise<{ success: boolean; remaining: number }>
   }
 }
 
