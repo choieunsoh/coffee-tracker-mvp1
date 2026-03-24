@@ -5,7 +5,7 @@ import { DEFAULT_COFFEE_TYPE } from '@/config/app.config'
 import { getTodayStart } from '@/shared/utils/date'
 import type { CoffeeEntry } from '../types/CoffeeEntry.types'
 
-export function useCoffeeEntries() {
+export function useCoffeeEntries(consumeStock?: () => Promise<boolean>) {
   const [todayEntries, setTodayEntries] = useState<CoffeeEntry[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [isAdding, setIsAdding] = useState(false)
@@ -75,6 +75,17 @@ export function useCoffeeEntries() {
     setError(null)
 
     try {
+      // Consume stock first (if stock tracking is enabled)
+      if (consumeStock) {
+        console.log('[addEntry] Consuming stock...')
+        const consumed = await consumeStock()
+        if (!consumed) {
+          setError('Not enough capsules. Please add more stock.')
+          setIsAdding(false)
+          return
+        }
+      }
+
       console.log('[addEntry] Calling API...')
       const newEntry = await apiClient.addEntry(
         DEFAULT_COFFEE_TYPE.brand,
@@ -96,7 +107,7 @@ export function useCoffeeEntries() {
     } finally {
       setIsAdding(false)
     }
-  }, [isAdding, loadEntries])
+  }, [isAdding, loadEntries, consumeStock])
 
   const updateEntryTimestamp = useCallback(async (id: string, createdAt: number) => {
     try {
