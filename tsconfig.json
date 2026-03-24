@@ -21,14 +21,13 @@
     "noFallthroughCasesInSwitch": true,
     "noUncheckedSideEffectImports": true,
 
-    /* Path aliases */
-    "baseUrl": ".",
+    /* Path aliases (TypeScript 6.0+ syntax) */
     "paths": {
-      "@/*": ["./src/*"],
-      "@/features/*": ["./src/features/*"],
-      "@/lib/*": ["./src/lib/*"],
-      "@/shared/*": ["./src/shared/*"],
-      "@/config/*": ["./src/config/*"]
+      "@/*": ["src/*"],
+      "@/features/*": ["src/features/*"],
+      "@/lib/*": ["src/lib/*"],
+      "@/shared/*": ["src/shared/*"],
+      "@/config/*": ["src/config/*"]
     }
   },
   "include": ["src"]
