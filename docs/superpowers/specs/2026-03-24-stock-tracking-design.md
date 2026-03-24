@@ -1,7 +1,7 @@
 # Stock Tracking Feature Design
 
 **Date:** 2026-03-24
-**Status:** Draft (In Review)
+**Status:** Approved
 **Approach:** Separate Stock Data File with Backend Endpoints
 
 ## Overview
