@@ -14,7 +14,7 @@ const __dirname = path.dirname(__filename);
 
 const app = express();
 
-const PORT = 6001;
+const PORT = 5001;
 // Store database in /app/data directory (persisted to local machine)
 const DATA_DIR = path.join(__dirname, 'data');
 const DB_FILE = path.join(DATA_DIR, 'coffee-data.json');
@@ -29,7 +29,7 @@ if (!fs.existsSync(DATA_DIR)) {
 // CORS configuration - restrict to allowed origins
 const allowedOrigins = process.env.ALLOWED_ORIGINS
   ? process.env.ALLOWED_ORIGINS.split(',')
-  : ['http://localhost:3001', 'http://localhost:6001'];
+  : ['http://localhost:3001', 'http://localhost:5001'];
 
 app.use(
   cors({
