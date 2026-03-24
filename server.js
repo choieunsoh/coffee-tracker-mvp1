@@ -14,10 +14,11 @@ const __dirname = path.dirname(__filename);
 
 const app = express();
 
-const PORT = 5001;
+const PORT = 6001;
 // Store database in /app/data directory (persisted to local machine)
 const DATA_DIR = path.join(__dirname, 'data');
 const DB_FILE = path.join(DATA_DIR, 'coffee-data.json');
+const STOCK_DB_FILE = path.join(DATA_DIR, 'stock-data.json');
 
 // Ensure data directory exists
 if (!fs.existsSync(DATA_DIR)) {
@@ -28,7 +29,7 @@ if (!fs.existsSync(DATA_DIR)) {
 // CORS configuration - restrict to allowed origins
 const allowedOrigins = process.env.ALLOWED_ORIGINS
   ? process.env.ALLOWED_ORIGINS.split(',')
-  : ['http://localhost:3001', 'http://localhost:5001'];
+  : ['http://localhost:3001', 'http://localhost:6001'];
 
 app.use(
   cors({
@@ -369,6 +370,138 @@ app.patch('/api/entries/:id', requireAuth, (req, res) => {
   }
 });
 
+// GET /api/stock - Get user's stock
+app.get('/api/stock', requireAuth, (req, res) => {
+  try {
+    const userId = getUserId(req);
+
+    if (!userId) {
+      return res.status(401).json({ error: 'Invalid user' });
+    }
+
+    const data = readStockDatabase();
+    const userStocks = data.stocks.filter(s => s.userId === userId);
+    res.json(userStocks);
+  } catch (error) {
+    console.error('Failed to fetch stock:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// POST /api/stock - Add or update stock
+app.post('/api/stock', requireAuth, (req, res) => {
+  try {
+    const { brand, beanName, quantity } = req.body;
+    const userId = getUserId(req);
+
+    if (!userId) {
+      return res.status(401).json({ error: 'Invalid user' });
+    }
+
+    // Validate request body
+    if (!req.body || typeof req.body !== 'object') {
+      return res.status(400).json({ error: 'Invalid request body' });
+    }
+
+    // Validate brand
+    if (typeof brand !== 'string' || brand.trim().length === 0 || brand.length > 100) {
+      return res.status(400).json({ error: 'Invalid brand' });
+    }
+
+    // Validate beanName
+    if (typeof beanName !== 'string' || beanName.trim().length === 0 || beanName.length > 100) {
+      return res.status(400).json({ error: 'Invalid beanName' });
+    }
+
+    // Validate quantity
+    if (typeof quantity !== 'number' || !Number.isInteger(quantity) || quantity < 1 || quantity > 1000) {
+      return res.status(400).json({ error: 'Invalid quantity: must be integer between 1 and 1000' });
+    }
+
+    const trimmedBrand = brand.trim();
+    const trimmedBeanName = beanName.trim();
+
+    const data = readStockDatabase();
+    const existingStock = findStock(data.stocks, userId, trimmedBrand, trimmedBeanName);
+
+    if (existingStock) {
+      // Update existing stock
+      existingStock.quantity += quantity;
+      existingStock.updatedAt = Date.now();
+      writeStockDatabase(data);
+      res.json(existingStock);
+    } else {
+      // Create new stock entry
+      const newStock = {
+        id: crypto.randomUUID(),
+        userId,
+        brand: trimmedBrand,
+        beanName: trimmedBeanName,
+        quantity,
+        createdAt: Date.now(),
+        updatedAt: Date.now(),
+      };
+      data.stocks.push(newStock);
+      writeStockDatabase(data);
+      res.json(newStock);
+    }
+  } catch (error) {
+    console.error('Failed to add stock:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// POST /api/stock/consume - Decrease stock by 1
+app.post('/api/stock/consume', requireAuth, (req, res) => {
+  try {
+    const { brand, beanName } = req.body;
+    const userId = getUserId(req);
+
+    if (!userId) {
+      return res.status(401).json({ error: 'Invalid user' });
+    }
+
+    // Validate request body
+    if (!req.body || typeof req.body !== 'object') {
+      return res.status(400).json({ error: 'Invalid request body' });
+    }
+
+    // Validate brand
+    if (typeof brand !== 'string' || brand.trim().length === 0) {
+      return res.status(400).json({ error: 'Invalid brand' });
+    }
+
+    // Validate beanName
+    if (typeof beanName !== 'string' || beanName.trim().length === 0) {
+      return res.status(400).json({ error: 'Invalid beanName' });
+    }
+
+    const trimmedBrand = brand.trim();
+    const trimmedBeanName = beanName.trim();
+
+    const data = readStockDatabase();
+    const stock = findStock(data.stocks, userId, trimmedBrand, trimmedBeanName);
+
+    if (!stock) {
+      return res.status(404).json({ error: 'No stock found for this coffee type. Please add stock first.' });
+    }
+
+    if (stock.quantity < 1) {
+      return res.status(400).json({ error: 'Insufficient stock' });
+    }
+
+    // Decrease stock
+    stock.quantity -= 1;
+    stock.updatedAt = Date.now();
+    writeStockDatabase(data);
+
+    res.json({ success: true, remaining: stock.quantity });
+  } catch (error) {
+    console.error('Failed to consume stock:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
 // Database functions
 function readDatabase() {
   if (!fs.existsSync(DB_FILE)) {
@@ -394,6 +527,29 @@ function getTodayEntries(allEntries, userId) {
 
 function getEntriesSince(allEntries, startDate, userId) {
   return allEntries.filter((entry) => entry.createdAt >= startDate && entry.userId === userId);
+}
+
+// Stock database functions
+function readStockDatabase() {
+  if (!fs.existsSync(STOCK_DB_FILE)) {
+    return { stocks: [] };
+  }
+  try {
+    const data = fs.readFileSync(STOCK_DB_FILE, 'utf8');
+    return JSON.parse(data);
+  } catch {
+    return { stocks: [] };
+  }
+}
+
+function writeStockDatabase(data) {
+  fs.writeFileSync(STOCK_DB_FILE, JSON.stringify(data, null, 2));
+}
+
+function findStock(stocks, userId, brand, beanName) {
+  return stocks.find(
+    s => s.userId === userId && s.brand === brand && s.beanName === beanName
+  );
 }
 
 // Migrate existing data to first user on first login
