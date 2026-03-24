@@ -1,13 +1,14 @@
 import { useState } from 'react'
-import { Box, Typography } from '@mui/material'
+import { Box, Typography, Tooltip } from '@mui/material'
 
 type CoffeeCountButtonProps = {
   count: number
   onAddEntry: () => void
   disabled?: boolean
+  disabledReason?: string
 }
 
-export function CoffeeCountButton({ count, onAddEntry, disabled }: CoffeeCountButtonProps) {
+export function CoffeeCountButton({ count, onAddEntry, disabled, disabledReason }: CoffeeCountButtonProps) {
   const [isProcessing, setIsProcessing] = useState(false)
 
   const handleClick = async (e: React.MouseEvent) => {
@@ -41,7 +42,7 @@ export function CoffeeCountButton({ count, onAddEntry, disabled }: CoffeeCountBu
     }
   }
 
-  return (
+  const content = (
     <Box
       onClick={handleClick}
       sx={{
@@ -97,4 +98,15 @@ export function CoffeeCountButton({ count, onAddEntry, disabled }: CoffeeCountBu
       </Typography>
     </Box>
   )
+
+  // Wrap with Tooltip when disabled with a reason
+  if (disabled && disabledReason) {
+    return (
+      <Tooltip title={disabledReason} arrow>
+        <span>{content}</span>
+      </Tooltip>
+    )
+  }
+
+  return content
 }
