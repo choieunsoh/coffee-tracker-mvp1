@@ -1,6 +1,6 @@
 {
   "name": "coffee-tracker-mvp",
-  "version": "1.7.1",
+  "version": "1.8.0",
   "license": "MIT",
   "private": true,
   "type": "module",
@@ -60,7 +60,7 @@
     "prettier": "^3.8.1",
     "react": "^19.2.4",
     "react-dom": "^19.2.4",
-    "typescript": "^5.9.3",
+    "typescript": "^6.0.2",
     "vite": "^8.0.1",
     "zod": "^4.3.6"
   },
