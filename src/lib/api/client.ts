@@ -59,7 +59,7 @@ export class CoffeeApiClient {
     })
 
     if (!response.ok) {
-      throw new Error(`Failed to fetch stock: ${response.statusText}`)
+      throw new Error('Failed to fetch stock')
     }
 
     return response.json() as Promise<CoffeeStock[]>
