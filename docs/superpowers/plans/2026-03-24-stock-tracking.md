@@ -76,7 +76,7 @@ const STOCK_DB_FILE = path.join(DATA_DIR, 'stock-data.json');
 
 - [ ] **Step 2: Add stock database functions**
 
-Add after `writeDatabase()` function (around line 387):
+Add after the `writeDatabase()` function (ends around line 387, add after line 387):
 
 ```javascript
 // Stock database functions
@@ -105,7 +105,7 @@ function findStock(stocks, userId, brand, beanName) {
 
 - [ ] **Step 3: Add GET /api/stock endpoint**
 
-Add after `/api/entries/:id` PATCH endpoint (around line 370):
+Add after the existing `/api/entries` routes (after line 397, following the helper functions section):
 
 ```javascript
 // GET /api/stock - Get user's stock
@@ -320,7 +320,8 @@ async consumeStock(brand: string, beanName: string): Promise<{ success: boolean;
 
 - [ ] **Step 3: Add CoffeeStock import at top of file**
 
-Add to imports:
+Add to imports at top of file. Note: This imports the type from the types file (created in Task 1), following the project pattern of using `type` keyword and centralizing type definitions.
+
 ```typescript
 import type { CoffeeStock } from '@/features/coffee-tracker/types/CoffeeEntry.types'
 ```
@@ -781,7 +782,7 @@ export function useCoffeeEntries(consumeStock?: () => Promise<boolean>) {
 
 - [ ] **Step 2: Modify addEntry to consume stock first**
 
-Update the `addEntry` function to check stock before creating entry:
+Update the `addEntry` function to check stock before creating entry. Note: `DEFAULT_COFFEE_TYPE` is already imported in this file (line 4), so no new import needed.
 
 ```typescript
 const addEntry = useCallback(async () => {
@@ -866,31 +867,36 @@ type CoffeeCountButtonProps = {
 
 - [ ] **Step 3: Add Tooltip for disabled state**
 
-Wrap button with MUI Tooltip when there's a disabled reason:
+Note: The current component returns a Box as its root element. Wrap the entire return value with MUI Tooltip when there's a disabled reason:
 
 ```typescript
 import { Tooltip } from '@mui/material'
-// ... other imports
+// ... other imports (keep existing)
 
 export function CoffeeCountButton({ count, onAddEntry, disabled, disabledReason }: CoffeeCountButtonProps) {
-  const button = (
-    <Button
-      // ... existing props
-      disabled={disabled}
+  // ... existing code (useState, handleClick function) ...
+
+  const content = (
+    <Box
+      onClick={handleClick}
+      sx={{
+        // ... existing sx props ...
+      }}
     >
-      {/* existing content */}
-    </Button>
+      {/* existing Typography children */}
+    </Box>
   )
 
+  // Wrap with Tooltip when disabled with a reason
   if (disabled && disabledReason) {
     return (
       <Tooltip title={disabledReason} arrow>
-        <span>{button}</span>
+        <span>{content}</span>
       </Tooltip>
     )
   }
 
-  return button
+  return content
 }
 ```
 
@@ -922,12 +928,16 @@ import { useStock } from '../hooks/useStock'
 
 - [ ] **Step 2: Add stock state to CoffeeTracker component**
 
-Add stock hook and dialog state:
+Add stock hook and dialog state. Note: We need to destructure `consumeStock` from `useStock` to pass to `useCoffeeEntries`:
+
 ```typescript
 export function CoffeeTracker() {
-  const { todayEntries, count, addEntry, updateEntryTimestamp, deleteEntry, isLoading, isAdding, error } = useCoffeeEntries(consumeStock)
-  const { stock, isLoading: stockLoading, addStock } = useStock()
+  // Get consumeStock from useStock to pass to useCoffeeEntries
+  const { stock, isLoading: stockLoading, addStock, consumeStock } = useStock()
   const [dialogOpen, setDialogOpen] = useState(false)
+
+  // Pass consumeStock to useCoffeeEntries so it can check stock before adding entries
+  const { todayEntries, count, addEntry, updateEntryTimestamp, deleteEntry, isLoading, isAdding, error } = useCoffeeEntries(consumeStock)
 
   const handleDelete = async (id: string): Promise<void> => {
     await deleteEntry(id)
@@ -948,14 +958,7 @@ export function CoffeeTracker() {
   }
 ```
 
-- [ ] **Step 3: Fix useCoffeeEntries call - need to get consumeStock from useStock**
-
-Update to destructure consumeStock:
-```typescript
-const { stock, isLoading: stockLoading, addStock, consumeStock } = useStock()
-```
-
-- [ ] **Step 4: Add StockCard and FAB to JSX**
+- [ ] **Step 3: Add StockCard and FAB to JSX**
 
 Add components to the return JSX:
 
@@ -1000,11 +1003,11 @@ return (
 )
 ```
 
-- [ ] **Step 5: Add useState import if not present**
+- [ ] **Step 4: Add useState import if not present**
 
 Make sure `useState` is imported from React.
 
-- [ ] **Step 6: Commit**
+- [ ] **Step 5: Commit**
 
 ```bash
 git add src/features/coffee-tracker/components/CoffeeTracker.tsx
@@ -1082,8 +1085,9 @@ Login to the app and verify:
 
 - [ ] **Step 9: Test stock accumulation**
 
-- Add 12 capsules (total: 10)
-- Verify stock updated (not duplicated)
+- Starting from 10 capsules (after Step 7), add 12 more capsules
+- Verify total becomes 22 (10 + 12), not duplicated as a new entry
+- This confirms the "upsert" behavior (update existing, don't create duplicate)
 
 ---
 
