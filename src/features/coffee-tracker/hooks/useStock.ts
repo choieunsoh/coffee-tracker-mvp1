@@ -10,6 +10,7 @@ type UseStockReturn = {
   error: string | null
   addStock: (quantity: number) => Promise<void>
   consumeStock: () => Promise<boolean>
+  restoreStock: () => Promise<void>
   refreshStock: () => Promise<void>
 }
 
@@ -89,6 +90,27 @@ export function useStock(): UseStockReturn {
     }
   }, [stock])
 
+  const restoreStock = useCallback(async (): Promise<void> => {
+    try {
+      console.log('[useStock] Restoring stock...')
+      const result = await apiClient.restoreStock(
+        DEFAULT_COFFEE_TYPE.brand,
+        DEFAULT_COFFEE_TYPE.beanName
+      )
+
+      if (stock) {
+        setStock({ ...stock, quantity: result.remaining, updatedAt: Date.now() })
+      }
+
+      console.log('[useStock] Stock restored, remaining:', result.remaining)
+    } catch (err) {
+      console.error('Failed to restore stock:', err)
+      const errorMessage = err instanceof Error ? err.message : 'Failed to restore stock'
+      setError(errorMessage)
+      throw err
+    }
+  }, [stock])
+
   return {
     stock,
     isLoading,
@@ -96,6 +118,7 @@ export function useStock(): UseStockReturn {
     error,
     addStock,
     consumeStock,
+    restoreStock,
     refreshStock: loadStock,
   }
 }

@@ -5,7 +5,7 @@ import { DEFAULT_COFFEE_TYPE } from '@/config/app.config'
 import { getTodayStart } from '@/shared/utils/date'
 import type { CoffeeEntry } from '../types/CoffeeEntry.types'
 
-export function useCoffeeEntries(consumeStock?: () => Promise<boolean>) {
+export function useCoffeeEntries(consumeStock?: () => Promise<boolean>, restoreStock?: () => Promise<void>) {
   const [todayEntries, setTodayEntries] = useState<CoffeeEntry[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [isAdding, setIsAdding] = useState(false)
@@ -134,6 +134,12 @@ export function useCoffeeEntries(consumeStock?: () => Promise<boolean>) {
       console.log('[deleteEntry] Deleting entry:', id)
       await apiClient.deleteEntry(id)
 
+      // Restore stock (if stock tracking is enabled)
+      if (restoreStock) {
+        console.log('[deleteEntry] Restoring stock...')
+        await restoreStock()
+      }
+
       // Update local state by removing the deleted entry
       setTodayEntries((prevEntries) =>
         prevEntries.filter((entry) => entry.id !== id)
@@ -145,7 +151,7 @@ export function useCoffeeEntries(consumeStock?: () => Promise<boolean>) {
       // Reload to get correct state
       loadEntries()
     }
-  }, [loadEntries])
+  }, [loadEntries, restoreStock])
 
   return {
     todayEntries,

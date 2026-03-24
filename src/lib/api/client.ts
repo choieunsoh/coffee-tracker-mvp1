@@ -96,6 +96,22 @@ export class CoffeeApiClient {
 
     return response.json() as Promise<{ success: boolean; remaining: number }>
   }
+
+  async restoreStock(brand: string, beanName: string): Promise<{ success: boolean; remaining: number }> {
+    const response = await fetch(`${API_BASE}/api/stock/restore`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ brand, beanName }),
+      credentials: 'include',
+    })
+
+    if (!response.ok) {
+      const error = await response.json()
+      throw new Error(error.error || 'Failed to restore stock')
+    }
+
+    return response.json() as Promise<{ success: boolean; remaining: number }>
+  }
 }
 
 export const apiClient = new CoffeeApiClient()

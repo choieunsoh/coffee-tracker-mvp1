@@ -9,12 +9,12 @@ import { useCoffeeEntries } from '../hooks/useCoffeeEntries'
 import { useStock } from '../hooks/useStock'
 
 export function CoffeeTracker() {
-  // Get consumeStock from useStock to pass to useCoffeeEntries
-  const { stock, isLoading: stockLoading, addStock, consumeStock } = useStock()
+  // Get consumeStock and restoreStock from useStock to pass to useCoffeeEntries
+  const { stock, isLoading: stockLoading, addStock, consumeStock, restoreStock } = useStock()
   const [dialogOpen, setDialogOpen] = useState(false)
 
-  // Pass consumeStock to useCoffeeEntries so it can check stock before adding entries
-  const { todayEntries, count, addEntry, updateEntryTimestamp, deleteEntry, isLoading, isAdding, error } = useCoffeeEntries(consumeStock)
+  // Pass consumeStock and restoreStock to useCoffeeEntries
+  const { todayEntries, count, addEntry, updateEntryTimestamp, deleteEntry, isLoading, isAdding, error } = useCoffeeEntries(consumeStock, restoreStock)
 
   const handleDelete = async (id: string): Promise<void> => {
     await deleteEntry(id)

@@ -526,6 +526,65 @@ app.post('/api/stock/consume', requireAuth, (req, res) => {
   }
 });
 
+// POST /api/stock/restore - Increase stock by 1 (restore after delete)
+app.post('/api/stock/restore', requireAuth, (req, res) => {
+  try {
+    const { brand, beanName } = req.body;
+    const userId = getUserId(req);
+
+    if (!userId) {
+      return res.status(401).json({ error: 'Invalid user' });
+    }
+
+    // Validate request body
+    if (!req.body || typeof req.body !== 'object') {
+      return res.status(400).json({ error: 'Invalid request body' });
+    }
+
+    // Validate brand
+    if (typeof brand !== 'string') {
+      return res.status(400).json({ error: 'Invalid brand: must be a string' });
+    }
+    if (brand.trim().length === 0) {
+      return res.status(400).json({ error: 'Invalid brand: cannot be empty' });
+    }
+    if (brand.length > 100) {
+      return res.status(400).json({ error: 'Invalid brand: too long (max 100 characters)' });
+    }
+
+    // Validate beanName
+    if (typeof beanName !== 'string') {
+      return res.status(400).json({ error: 'Invalid beanName: must be a string' });
+    }
+    if (beanName.trim().length === 0) {
+      return res.status(400).json({ error: 'Invalid beanName: cannot be empty' });
+    }
+    if (beanName.length > 100) {
+      return res.status(400).json({ error: 'Invalid beanName: too long (max 100 characters)' });
+    }
+
+    const trimmedBrand = brand.trim();
+    const trimmedBeanName = beanName.trim();
+
+    const data = readStockDatabase();
+    const stock = findStock(data.stocks, userId, trimmedBrand, trimmedBeanName);
+
+    if (!stock) {
+      return res.status(404).json({ error: 'No stock found for this coffee type. Please add stock first.' });
+    }
+
+    // Increase stock (restore)
+    stock.quantity += 1;
+    stock.updatedAt = Date.now();
+    writeStockDatabase(data);
+
+    res.json({ success: true, remaining: stock.quantity });
+  } catch (error) {
+    console.error('Failed to restore stock:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
 // Database functions
 function readDatabase() {
   if (!fs.existsSync(DB_FILE)) {
