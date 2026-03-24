@@ -14,3 +14,15 @@ export const NewCoffeeEntrySchema = z.object({
 
 export type CoffeeEntry = z.infer<typeof CoffeeEntrySchema>
 export type NewCoffeeEntry = z.infer<typeof NewCoffeeEntrySchema>
+
+export const CoffeeStockSchema = z.object({
+  id: z.string().uuid(),
+  userId: z.string(),
+  brand: z.string().min(1),
+  beanName: z.string().min(1),
+  quantity: z.number().int().min(0),
+  createdAt: z.number().int().positive(),
+  updatedAt: z.number().int().positive(),
+})
+
+export type CoffeeStock = z.infer<typeof CoffeeStockSchema>
