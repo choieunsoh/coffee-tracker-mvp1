@@ -404,13 +404,25 @@ app.post('/api/stock', requireAuth, (req, res) => {
     }
 
     // Validate brand
-    if (typeof brand !== 'string' || brand.trim().length === 0 || brand.length > 100) {
-      return res.status(400).json({ error: 'Invalid brand' });
+    if (typeof brand !== 'string') {
+      return res.status(400).json({ error: 'Invalid brand: must be a string' });
+    }
+    if (brand.trim().length === 0) {
+      return res.status(400).json({ error: 'Invalid brand: cannot be empty' });
+    }
+    if (brand.length > 100) {
+      return res.status(400).json({ error: 'Invalid brand: too long (max 100 characters)' });
     }
 
     // Validate beanName
-    if (typeof beanName !== 'string' || beanName.trim().length === 0 || beanName.length > 100) {
-      return res.status(400).json({ error: 'Invalid beanName' });
+    if (typeof beanName !== 'string') {
+      return res.status(400).json({ error: 'Invalid beanName: must be a string' });
+    }
+    if (beanName.trim().length === 0) {
+      return res.status(400).json({ error: 'Invalid beanName: cannot be empty' });
+    }
+    if (beanName.length > 100) {
+      return res.status(400).json({ error: 'Invalid beanName: too long (max 100 characters)' });
     }
 
     // Validate quantity
@@ -467,13 +479,25 @@ app.post('/api/stock/consume', requireAuth, (req, res) => {
     }
 
     // Validate brand
-    if (typeof brand !== 'string' || brand.trim().length === 0) {
-      return res.status(400).json({ error: 'Invalid brand' });
+    if (typeof brand !== 'string') {
+      return res.status(400).json({ error: 'Invalid brand: must be a string' });
+    }
+    if (brand.trim().length === 0) {
+      return res.status(400).json({ error: 'Invalid brand: cannot be empty' });
+    }
+    if (brand.length > 100) {
+      return res.status(400).json({ error: 'Invalid brand: too long (max 100 characters)' });
     }
 
     // Validate beanName
-    if (typeof beanName !== 'string' || beanName.trim().length === 0) {
-      return res.status(400).json({ error: 'Invalid beanName' });
+    if (typeof beanName !== 'string') {
+      return res.status(400).json({ error: 'Invalid beanName: must be a string' });
+    }
+    if (beanName.trim().length === 0) {
+      return res.status(400).json({ error: 'Invalid beanName: cannot be empty' });
+    }
+    if (beanName.length > 100) {
+      return res.status(400).json({ error: 'Invalid beanName: too long (max 100 characters)' });
     }
 
     const trimmedBrand = brand.trim();
