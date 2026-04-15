@@ -1,4 +1,4 @@
-import type { CoffeeStock } from '@/features/coffee-tracker/types/CoffeeEntry.types'
+import type { CoffeeStock, StockAddHistory } from '@/features/coffee-tracker/types/CoffeeEntry.types'
 
 const API_BASE = window.location.origin
 
@@ -65,11 +65,11 @@ export class CoffeeApiClient {
     return response.json() as Promise<CoffeeStock[]>
   }
 
-  async addStock(brand: string, beanName: string, quantity: number): Promise<CoffeeStock> {
+  async addStock(brand: string, beanName: string, quantity: number, cost: number, shop: string): Promise<CoffeeStock> {
     const response = await fetch(`${API_BASE}/api/stock`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ brand, beanName, quantity }),
+      body: JSON.stringify({ brand, beanName, quantity, cost, shop }),
       credentials: 'include',
     })
 
@@ -79,6 +79,19 @@ export class CoffeeApiClient {
     }
 
     return response.json() as Promise<CoffeeStock>
+  }
+
+  async getStockHistory(limit?: number): Promise<StockAddHistory[]> {
+    const url = limit ? `${API_BASE}/api/stock-history?limit=${limit}` : `${API_BASE}/api/stock-history`
+    const response = await fetch(url, {
+      credentials: 'include',
+    })
+
+    if (!response.ok) {
+      throw new Error('Failed to fetch stock history')
+    }
+
+    return response.json() as Promise<StockAddHistory[]>
   }
 
   async consumeStock(brand: string, beanName: string): Promise<{ success: boolean; remaining: number }> {
