@@ -416,6 +416,49 @@ bun run build
 - **Documentation as you go**
 - **Automate repetitive tasks**
 
+## Stock Addition History
+
+The app tracks stock addition history with cost and shop information for expense tracking and inventory management.
+
+### Data Storage
+
+- **File:** `data/stock-history.json`
+- **Structure:** `{"additions": [entry1, entry2, ...]}`
+- **Each entry contains:** `id`, `userId`, `brand`, `beanName`, `quantity`, `cost`, `shop`, `timestamp`
+
+### API Endpoints
+
+- **GET `/api/stock-history`** - Get authenticated user's addition history (optional `?limit=N` for pagination)
+- **POST `/api/stock`** - Add stock (now **requires** `cost` and `shop` fields)
+
+### Type Definitions
+
+- **`StockAddHistory`** - Type for addition history entries
+- **Location:** `src/features/coffee-tracker/types/CoffeeEntry.types.ts`
+- **Zod schema** validates all fields including cost (nonnegative) and shop (non-empty string)
+
+### Frontend Components
+
+- **AddStockDialog** - Now requires users to enter:
+  - Quantity (number of capsules, 1-1000)
+  - Total Cost (e.g., 25.00)
+  - Shop Name (e.g., "Amazon", "Local Store")
+
+### Backend Behavior
+
+When stock is added:
+1. Validates all inputs (quantity, cost, shop)
+2. Updates `CoffeeStock` quantity
+3. Creates `StockAddHistory` entry
+4. Saves to both `stock-data.json` and `stock-history.json`
+
+### Usage Notes
+
+- **cost and shop are required** - Stock addition will fail without these fields
+- **cost allows 0** - Supports free stock/gift scenarios
+- **History is user-isolated** - Each user only sees their own addition history
+- **Sorted by newest first** - GET endpoint returns most recent additions first
+
 ## Future Improvements
 
 ### High Priority
@@ -448,6 +491,49 @@ bun run build
 - **Working code over perfect code**
 - **Documentation as you go**
 - **Automate repetitive tasks**
+
+## Stock Addition History
+
+The app tracks stock addition history with cost and shop information for expense tracking and inventory management.
+
+### Data Storage
+
+- **File:** `data/stock-history.json`
+- **Structure:** `{"additions": [entry1, entry2, ...]}`
+- **Each entry contains:** `id`, `userId`, `brand`, `beanName`, `quantity`, `cost`, `shop`, `timestamp`
+
+### API Endpoints
+
+- **GET `/api/stock-history`** - Get authenticated user's addition history (optional `?limit=N` for pagination)
+- **POST `/api/stock`** - Add stock (now **requires** `cost` and `shop` fields)
+
+### Type Definitions
+
+- **`StockAddHistory`** - Type for addition history entries
+- **Location:** `src/features/coffee-tracker/types/CoffeeEntry.types.ts`
+- **Zod schema** validates all fields including cost (nonnegative) and shop (non-empty string)
+
+### Frontend Components
+
+- **AddStockDialog** - Now requires users to enter:
+  - Quantity (number of capsules, 1-1000)
+  - Total Cost (e.g., 25.00)
+  - Shop Name (e.g., "Amazon", "Local Store")
+
+### Backend Behavior
+
+When stock is added:
+1. Validates all inputs (quantity, cost, shop)
+2. Updates `CoffeeStock` quantity
+3. Creates `StockAddHistory` entry
+4. Saves to both `stock-data.json` and `stock-history.json`
+
+### Usage Notes
+
+- **cost and shop are required** - Stock addition will fail without these fields
+- **cost allows 0** - Supports free stock/gift scenarios
+- **History is user-isolated** - Each user only sees their own addition history
+- **Sorted by newest first** - GET endpoint returns most recent additions first
 
 ## Future Improvements
 
