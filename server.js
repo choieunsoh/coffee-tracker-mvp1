@@ -19,6 +19,7 @@ const PORT = 5001;
 const DATA_DIR = path.join(__dirname, 'data');
 const DB_FILE = path.join(DATA_DIR, 'coffee-data.json');
 const STOCK_DB_FILE = path.join(DATA_DIR, 'stock-data.json');
+const STOCK_HISTORY_PATH = path.join(DATA_DIR, 'stock-history.json');
 
 // Ensure data directory exists
 if (!fs.existsSync(DATA_DIR)) {
@@ -388,10 +389,10 @@ app.get('/api/stock', requireAuth, (req, res) => {
   }
 });
 
-// POST /api/stock - Add or update stock
+// POST /api/stock - Add or update stock (now requires cost and shop)
 app.post('/api/stock', requireAuth, (req, res) => {
   try {
-    const { brand, beanName, quantity } = req.body;
+    const { brand, beanName, quantity, cost, shop } = req.body;
     const userId = getUserId(req);
 
     if (!userId) {
@@ -430,33 +431,73 @@ app.post('/api/stock', requireAuth, (req, res) => {
       return res.status(400).json({ error: 'Invalid quantity: must be integer between 1 and 1000' });
     }
 
+    // NEW: Validate cost (required)
+    if (cost === undefined || cost === null) {
+      return res.status(400).json({ error: 'Cost is required' });
+    }
+    if (typeof cost !== 'number' || cost < 0) {
+      return res.status(400).json({ error: 'Cost must be a non-negative number' });
+    }
+
+    // NEW: Validate shop (required)
+    if (!shop || typeof shop !== 'string' || shop.trim().length === 0) {
+      return res.status(400).json({ error: 'Shop name is required' });
+    }
+
     const trimmedBrand = brand.trim();
     const trimmedBeanName = beanName.trim();
+    const trimmedShop = shop.trim();
 
     const data = readStockDatabase();
     const existingStock = findStock(data.stocks, userId, trimmedBrand, trimmedBeanName);
+    const now = Date.now();
 
+    let stock;
     if (existingStock) {
       // Update existing stock
       existingStock.quantity += quantity;
-      existingStock.updatedAt = Date.now();
-      writeStockDatabase(data);
-      res.json(existingStock);
+      existingStock.updatedAt = now;
+      stock = existingStock;
     } else {
       // Create new stock entry
-      const newStock = {
+      stock = {
         id: crypto.randomUUID(),
         userId,
         brand: trimmedBrand,
         beanName: trimmedBeanName,
         quantity,
-        createdAt: Date.now(),
-        updatedAt: Date.now(),
+        createdAt: now,
+        updatedAt: now,
       };
-      data.stocks.push(newStock);
-      writeStockDatabase(data);
-      res.json(newStock);
+      data.stocks.push(stock);
     }
+    writeStockDatabase(data);
+
+    // NEW: Create history entry
+    const historyEntry = {
+      id: crypto.randomUUID(),
+      userId,
+      brand: trimmedBrand,
+      beanName: trimmedBeanName,
+      quantity,
+      cost,
+      shop: trimmedShop,
+      timestamp: now,
+    };
+
+    // Read and update history
+    let historyData;
+    try {
+      historyData = JSON.parse(fs.readFileSync(STOCK_HISTORY_PATH, 'utf8'));
+    } catch {
+      // File doesn't exist yet, create it
+      historyData = { additions: [] };
+    }
+
+    historyData.additions.push(historyEntry);
+    fs.writeFileSync(STOCK_HISTORY_PATH, JSON.stringify(historyData, null, 2));
+
+    res.json(stock);
   } catch (error) {
     console.error('Failed to add stock:', error);
     res.status(500).json({ error: 'Internal server error' });
@@ -582,6 +623,28 @@ app.post('/api/stock/restore', requireAuth, (req, res) => {
   } catch (error) {
     console.error('Failed to restore stock:', error);
     res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// GET /api/stock-history - Get user's stock addition history
+app.get('/api/stock-history', requireAuth, async (req, res) => {
+  try {
+    const userId = getUserId(req);
+
+    if (!userId) {
+      return res.status(401).json({ error: 'Invalid user' });
+    }
+
+    // Read stock history
+    const historyData = JSON.parse(await fs.readFile(STOCK_HISTORY_PATH, 'utf8'));
+    const userAdditions = historyData.additions
+      .filter(entry => entry.userId === userId)
+      .sort((a, b) => b.timestamp - a.timestamp); // Newest first
+
+    res.json(userAdditions);
+  } catch (error) {
+    console.error('Error reading stock history:', error);
+    res.status(500).json({ error: 'Failed to read stock history' });
   }
 });
 
