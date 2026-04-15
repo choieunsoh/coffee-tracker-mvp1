@@ -8,7 +8,7 @@ type UseStockReturn = {
   isLoading: boolean
   isAdding: boolean
   error: string | null
-  addStock: (quantity: number) => Promise<void>
+  addStock: (quantity: number, cost: number, shop: string) => Promise<void>
   consumeStock: () => Promise<boolean>
   restoreStock: () => Promise<void>
   refreshStock: () => Promise<void>
@@ -44,10 +44,10 @@ export function useStock(): UseStockReturn {
     loadStock()
   }, [loadStock])
 
-  const addStock = useCallback(async (quantity: number) => {
+  const addStock = useCallback(async (quantity: number, cost: number, shop: string) => {
     if (isAdding) return
 
-    console.log('[useStock] Adding stock:', quantity)
+    console.log('[useStock] Adding stock:', quantity, 'cost:', cost, 'shop:', shop)
     setIsAdding(true)
     setError(null)
 
@@ -55,7 +55,9 @@ export function useStock(): UseStockReturn {
       const newStock = await apiClient.addStock(
         DEFAULT_COFFEE_TYPE.brand,
         DEFAULT_COFFEE_TYPE.beanName,
-        quantity
+        quantity,
+        cost,
+        shop
       )
       console.log('[useStock] Stock added:', newStock.quantity)
       setStock(newStock)
