@@ -24,8 +24,8 @@ export function CoffeeTracker() {
     await updateEntryTimestamp(id, newTimestamp)
   }
 
-  const handleAddStock = async (quantity: number) => {
-    await addStock(quantity)
+  const handleAddStock = async (quantity: number, cost: number, shop: string) => {
+    await addStock(quantity, cost, shop)
   }
 
   const getDisabledReason = () => {
