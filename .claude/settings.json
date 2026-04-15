@@ -71,6 +71,6 @@
       "Bash(grep -i api-key *)"
     ],
     "allow": ["Read(*)", "Write(*)", "Glob(*)", "Grep(*)"],
-    "ask": ["Bash(git commit:*)", "Bash(git merge:*)", "Bash(git push:*)"]
+    "ask": ["Bash(git merge:*)", "Bash(git push:*)"]
   }
 }
